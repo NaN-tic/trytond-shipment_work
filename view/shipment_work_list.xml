@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tree string="Shipment Work">
+    <field name="party"/>
+    <field name="work_name"/>
+    <field name="planned_date"/>
+    <field name="done_date"/>
+    <field name="work_description"/>
+    <field name="state"/>
+</tree>

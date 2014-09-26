@@ -1,0 +1,350 @@
+# 
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "error:shipment.work-timesheet.work:"
+msgid "The shipment work must be unique."
+msgstr "El albarán de trebajo debe ser único."
+
+msgctxt "error:shipment.work-timesheet.work:"
+msgid "The work must be unique."
+msgstr "El trebajo debe ser único."
+
+msgctxt "error:shipment.work:"
+msgid "Shipment Work \"%s\" must be cancelled before deletion."
+msgstr "El albarán de trabajo \"%s\" debe ser cancelado antes de eliminar-lo."
+
+msgctxt "field:sale.line,shipment_work_product:"
+msgid "Shipment Work Product"
+msgstr "Producto d'albaran de trabajo"
+
+msgctxt "field:shipment.work,create_date:"
+msgid "Create Date"
+msgstr "Fecha de creación"
+
+msgctxt "field:shipment.work,create_uid:"
+msgid "Create User"
+msgstr "Usuario de creación"
+
+msgctxt "field:shipment.work,done_date:"
+msgid "Done Date"
+msgstr "Fecha realización"
+
+msgctxt "field:shipment.work,done_description:"
+msgid "Done Description"
+msgstr "Descripción trabajo realizado"
+
+msgctxt "field:shipment.work,employees:"
+msgid "Employees"
+msgstr "Empleados"
+
+msgctxt "field:shipment.work,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work,party:"
+msgid "Party"
+msgstr "Tercero"
+
+msgctxt "field:shipment.work,payment_term:"
+msgid "Payment Term"
+msgstr "Plazo de pago"
+
+msgctxt "field:shipment.work,planned_date:"
+msgid "Planned Date"
+msgstr "Fecha estimada"
+
+msgctxt "field:shipment.work,products:"
+msgid "Products"
+msgstr "Productos"
+
+msgctxt "field:shipment.work,rec_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:shipment.work,sales:"
+msgid "Sales"
+msgstr "Ventas"
+
+msgctxt "field:shipment.work,state:"
+msgid "State"
+msgstr "Estado"
+
+msgctxt "field:shipment.work,timesheet_lines:"
+msgid "Timesheet Lines"
+msgstr "Líneas de parte de trabajo"
+
+msgctxt "field:shipment.work,warehouse:"
+msgid "Warehouse"
+msgstr "Almacén"
+
+msgctxt "field:shipment.work,work:"
+msgid "Work"
+msgstr "Trabajo"
+
+msgctxt "field:shipment.work,work_description:"
+msgid "Work Description"
+msgstr "Descripción trabajo"
+
+msgctxt "field:shipment.work,work_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:shipment.work,write_date:"
+msgid "Write Date"
+msgstr "Fecha modificación"
+
+msgctxt "field:shipment.work,write_uid:"
+msgid "Write User"
+msgstr "Usuario modificación"
+
+msgctxt "field:shipment.work-company.employee,create_date:"
+msgid "Create Date"
+msgstr "Fecha de creación"
+
+msgctxt "field:shipment.work-company.employee,create_uid:"
+msgid "Create User"
+msgstr "Usuario de creación"
+
+msgctxt "field:shipment.work-company.employee,employee:"
+msgid "Employee"
+msgstr "Empleado"
+
+msgctxt "field:shipment.work-company.employee,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work-company.employee,rec_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:shipment.work-company.employee,shipment:"
+msgid "Shipment"
+msgstr "Envío"
+
+msgctxt "field:shipment.work-company.employee,write_date:"
+msgid "Write Date"
+msgstr "Fecha modificación"
+
+msgctxt "field:shipment.work-company.employee,write_uid:"
+msgid "Write User"
+msgstr "Usuario modificación"
+
+msgctxt "field:shipment.work-timesheet.work,create_date:"
+msgid "Create Date"
+msgstr "Fecha de creación"
+
+msgctxt "field:shipment.work-timesheet.work,create_uid:"
+msgid "Create User"
+msgstr "Usuario de creación"
+
+msgctxt "field:shipment.work-timesheet.work,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work-timesheet.work,rec_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:shipment.work-timesheet.work,shipment:"
+msgid "Shipment work"
+msgstr "Albarán de trabajo."
+
+msgctxt "field:shipment.work-timesheet.work,work:"
+msgid "Work"
+msgstr "Trabajo"
+
+msgctxt "field:shipment.work-timesheet.work,write_date:"
+msgid "Write Date"
+msgstr "Fecha modificación"
+
+msgctxt "field:shipment.work-timesheet.work,write_uid:"
+msgid "Write User"
+msgstr "Usuario modificación"
+
+msgctxt "field:shipment.work.product,create_date:"
+msgid "Create Date"
+msgstr "Fecha de creación"
+
+msgctxt "field:shipment.work.product,create_uid:"
+msgid "Create User"
+msgstr "Usuario de creación"
+
+msgctxt "field:shipment.work.product,description:"
+msgid "Description"
+msgstr "Descripción"
+
+msgctxt "field:shipment.work.product,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work.product,product:"
+msgid "Product"
+msgstr "Productos"
+
+msgctxt "field:shipment.work.product,quantity:"
+msgid "Quantity"
+msgstr "Cantidad"
+
+msgctxt "field:shipment.work.product,rec_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:shipment.work.product,sale_lines:"
+msgid "Sale Line"
+msgstr "Línea de venta"
+
+msgctxt "field:shipment.work.product,shipment:"
+msgid "Shipment"
+msgstr "Envío"
+
+msgctxt "field:shipment.work.product,unit:"
+msgid "Unit"
+msgstr "Unidad"
+
+msgctxt "field:shipment.work.product,unit_digits:"
+msgid "Unit Digits"
+msgstr "Dígitos unidad"
+
+msgctxt "field:shipment.work.product,write_date:"
+msgid "Write Date"
+msgstr "Fecha modificación"
+
+msgctxt "field:shipment.work.product,write_uid:"
+msgid "Write User"
+msgstr "Usuario modificación"
+
+msgctxt "field:timesheet.line,shipment:"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "model:ir.action,name:act_shipment_work"
+msgid "Shipment Work"
+msgstr "Albaranes de trabajo"
+
+msgctxt "model:ir.action,name:act_shipment_work_calendar"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "model:ir.action,name:act_shipment_work_product"
+msgid "Shipment Product"
+msgstr "Producto Albarán"
+
+msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
+msgid "All"
+msgstr "Todos"
+
+msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_done"
+msgid "Done"
+msgstr "Realizado"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_draft"
+msgid "Draft"
+msgstr "Borrador"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_pending"
+msgid "Pending"
+msgstr "Pendiente"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_planned"
+msgid "Planned"
+msgstr "Planificado"
+
+msgctxt "model:ir.ui.menu,name:menu_shipment_work"
+msgid "Shipment Work"
+msgstr "Albaranes de trabajo"
+
+msgctxt "model:ir.ui.menu,name:menu_shipment_work_calendar"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "model:res.group,name:group_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "model:shipment.work,name:"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "model:shipment.work-company.employee,name:"
+msgid "Shipment Work - Employee"
+msgstr "Albarán de trabajo - Empleado"
+
+msgctxt "model:shipment.work-timesheet.work,name:"
+msgid "ShipmentWork - Work"
+msgstr "Albarán de trabajo - Trabajo"
+
+msgctxt "model:shipment.work.product,name:"
+msgid "Shipment Product"
+msgstr "Producto Albarán"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Canceled"
+msgstr "Cancelado"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Checked"
+msgstr "Revisado"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Done"
+msgstr "Realizado"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Draft"
+msgstr "Borrador"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Pending"
+msgstr "Pendiente"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Planned"
+msgstr "Planificado"
+
+msgctxt "view:shipment.work.product:"
+msgid "Shipment Product"
+msgstr "Producto Albarán"
+
+msgctxt "view:shipment.work:"
+msgid "Cancel"
+msgstr "Cancel·lar"
+
+msgctxt "view:shipment.work:"
+msgid "Check"
+msgstr "Revisar"
+
+msgctxt "view:shipment.work:"
+msgid "Costs"
+msgstr "Costes"
+
+msgctxt "view:shipment.work:"
+msgid "Done"
+msgstr "Realizado"
+
+msgctxt "view:shipment.work:"
+msgid "Draft"
+msgstr "Borrador"
+
+msgctxt "view:shipment.work:"
+msgid "General"
+msgstr "General"
+
+msgctxt "view:shipment.work:"
+msgid "Pending"
+msgstr "Pendiente"
+
+msgctxt "view:shipment.work:"
+msgid "Plan"
+msgstr "Planificar"
+
+msgctxt "view:shipment.work:"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
+msgctxt "view:shipment.work:"
+msgid "Shipment Works"
+msgstr "Albaranes de trabajo"

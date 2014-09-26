@@ -1,0 +1,420 @@
+# The COPYRIGHT file at the top level of this repository contains the full
+# copyright notices and license terms.
+from itertools import izip
+from decimal import Decimal
+
+from trytond.model import Workflow, ModelSQL, ModelView, fields
+from trytond.pool import Pool, PoolMeta
+from trytond.pyson import Eval, If, Bool
+from trytond.transaction import Transaction
+
+__all__ = ['ShipmentWorkEmployee', 'ShipmentWorkWorkRelation', 'ShipmentWork',
+    'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine']
+__metaclass__ = PoolMeta
+
+
+class ShipmentWorkEmployee(ModelSQL):
+    'Shipment Work - Employee'
+    __name__ = 'shipment.work-company.employee'
+    shipment = fields.Many2One('shipment.work', 'Shipment', required=True,
+        select=True, ondelete='CASCADE')
+    employee = fields.Many2One('company.employee', 'Employee', required=True,
+        select=True, ondelete='CASCADE')
+
+
+class ShipmentWorkWorkRelation(ModelSQL):
+    'ShipmentWork - Work'
+    __name__ = 'shipment.work-timesheet.work'
+    shipment = fields.Many2One('shipment.work', 'Shipment work',
+        ondelete='CASCADE', required=True, select=True)
+    work = fields.Many2One('timesheet.work', 'Work', required=True,
+        select=True)
+
+    @classmethod
+    def __setup__(cls):
+        super(ShipmentWorkWorkRelation, cls).__setup__()
+        cls._sql_constraints += [
+            ('shipment_unique', 'UNIQUE(shipment)',
+                'The shipment work must be unique.'),
+            ('work_unique', 'UNIQUE(work)',
+                'The work must be unique.'),
+            ]
+
+
+class ShipmentWork(Workflow, ModelSQL, ModelView):
+    'Shipment Work'
+    __name__ = 'shipment.work'
+    _rec_name = 'work_name'
+
+    work_name = fields.Function(fields.Char('Name',
+            states={
+                'readonly': Eval('state') != 'draft',
+                'required': Eval('work_name_required', True),
+                },
+            depends=['state', 'work_name_required']),
+        'get_work_name', searcher='search_work_name', setter='set_work_name')
+    work_name_required = fields.Function(fields.Boolean('Name Required'),
+        'get_work_name_required')
+    work = fields.One2One('shipment.work-timesheet.work', 'shipment', 'work',
+        'Work',
+        states={
+            'readonly': Eval('state') != 'draft',
+            },
+        depends=['state'])
+    party = fields.Many2One('party.party', 'Party', required=True, select=True,
+        states={
+            'readonly': Eval('state') != 'draft',
+            },
+        depends=['state'])
+    planned_date = fields.Date('Planned Date',
+        states={
+            'required': ~Eval('state').in_(['draft', 'pending', 'cancel']),
+            'readonly': Eval('state').in_(['cancel', 'done', 'checked']),
+            },
+        depends=['state'])
+    done_date = fields.Date('Done Date',
+        states={
+            'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            },
+        depends=['state'])
+    work_description = fields.Text('Work Description', required=True,
+        states={
+            'readonly': Eval('state') != 'draft',
+            },
+        depends=['state'])
+    done_description = fields.Text('Done Description',
+        states={
+            'required': Eval('state') == 'done',
+            'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            },
+        depends=['state'])
+    employees = fields.Many2Many('shipment.work-company.employee', 'shipment',
+        'employee', 'Employees',
+        states={
+            'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            },
+        depends=['state'])
+    products = fields.One2Many('shipment.work.product', 'shipment', 'Products',
+        states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            },
+        depends=['state'])
+    timesheet_lines = fields.One2Many('timesheet.line', 'shipment',
+        'Timesheet Lines',
+        domain=[
+            ('work', '=', Eval('work', 0)),
+            ],
+        context={
+            'work': Eval('work', 0),
+            },
+        states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            },
+        depends=['work', 'state'])
+    warehouse = fields.Many2One('stock.location', 'Warehouse',
+        domain=[
+            ('type', '=', 'warehouse'),
+            ],
+        states={
+            'required': (Eval('state').in_(['done', 'checked']) &
+                Bool(Eval('products', []))),
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            },
+        depends=['state'])
+    payment_term = fields.Many2One('account.invoice.payment_term',
+        'Payment Term',
+        states={
+            'required': (Eval('state').in_(['done', 'checked']) &
+                Bool(Eval('products', []))),
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            },
+        depends=['state'])
+    state = fields.Selection([
+            ('draft', 'Draft'),
+            ('pending', 'Pending'),
+            ('planned', 'Planned'),
+            ('done', 'Done'),
+            ('checked', 'Checked'),
+            ('cancel', 'Canceled'),
+            ], 'State', readonly=True, select=True)
+    sales = fields.Function(fields.One2Many('sale.sale', None,
+            'Sales'), 'get_sales')
+
+    @classmethod
+    def __setup__(cls):
+        super(ShipmentWork, cls).__setup__()
+        cls._error_messages.update({
+                'delete_cancel': ('Shipment Work "%s" must be cancelled before'
+                    ' deletion.'),
+                })
+        cls._transitions |= set((
+                ('draft', 'pending'),
+                ('pending', 'draft'),
+                ('pending', 'planned'),
+                ('planned', 'done'),
+                ('done', 'checked'),
+                ('draft', 'cancel'),
+                ('pending', 'cancel'),
+                ('planned', 'cancel'),
+                ('cancel', 'draft'),
+                ))
+        cls._buttons.update({
+                'draft': {
+                    'invisible': ~Eval('state').in_(['cancel', 'pending']),
+                    'icon': If(Eval('state') == 'cancel', 'tryton-clear',
+                        'tryton-go-previous'),
+                    },
+                'pending': {
+                    'invisible': Eval('state') != 'draft',
+                    'icon': 'tryton-ok',
+                    },
+                'plan': {
+                    'invisible': Eval('state') != 'pending',
+                    'icon': 'tryton-go-next',
+                    },
+                'done': {
+                    'invisible': Eval('state') != 'planned',
+                    'icon': 'tryton-ok',
+                    },
+                'check': {
+                    'invisible': Eval('state') != 'done',
+                    'icon': 'tryton-go-next',
+                    },
+                'cancel': {
+                    'invisible': ~Eval('state').in_(['draft', 'pending',
+                            'planned']),
+                    'icon': 'tryton-cancel',
+                    },
+                })
+
+    @staticmethod
+    def default_state():
+        return 'draft'
+
+    @staticmethod
+    def default_work_name_required():
+        return True
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    def get_work_name_required(self, name):
+        if Transaction().context.get('create_work'):
+            return False
+        return True
+
+    def get_work_name(self, name):
+        if not self.work:
+            return ''
+        return self.work.name
+
+    def get_sales(self, name):
+        pool = Pool()
+        Line = pool.get('sale.line')
+        lines = Line.search([
+                ('shipment_work_product', 'in', self.products),
+                ])
+        return list(set([l.sale.id for l in lines]))
+
+    @classmethod
+    def search_work_name(cls, name, clause):
+        return [('work.name',) + tuple(clause[1:])]
+
+    @classmethod
+    def set_work_name(cls, works, name, value):
+        Work = Pool().get('timesheet.work')
+        Work.write([p.work for p in works], {
+                'name': value,
+                })
+
+    @classmethod
+    def create(cls, vlist):
+        Work = Pool().get('timesheet.work')
+        vlist = [x.copy() for x in vlist]
+        to_create = []
+        to_values = []
+        for values in vlist:
+            if (not values.get('work') and
+                    not Transaction().context.get('create_work')):
+                to_create.append({
+                        'name': values.get('work_name'),
+                        })
+                to_values.append(values)
+        if to_create:
+            works = Work.create(to_create)
+            for values, work in izip(to_values, works):
+                values['work'] = work.id
+        return super(ShipmentWork, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, shipments, defaults=None):
+        pool = Pool()
+        Work = pool.get('timesheet.work')
+        if defaults is None:
+            defaults = {}
+        defaults.setdefault('work')
+        defaults.setdefault('timesheet_lines', [])
+        with Transaction().set_context(create_work=True):
+            new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
+        new_works = Work.copy([s.work for s in shipments])
+        to_write = []
+        for work, shipment in izip(new_works, new_shipments):
+            to_write.extend(([shipment], {'work': work.id}))
+        cls.write(*to_write)
+        return new_shipments
+
+    @classmethod
+    def delete(cls, shipments):
+        pool = Pool()
+        Work = pool.get('timesheet.work')
+        cls.cancel(shipments)
+        for shipment in shipments:
+            if shipment.state != 'cancel':
+                cls.raise_user_error('delete_cancel', (shipment.rec_name,))
+        works = [s.work for s in shipments if s.work]
+        super(ShipmentWork, cls).delete(shipments)
+        Work.delete(works)
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('draft')
+    def draft(cls, shipments):
+        pass
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('pending')
+    def pending(cls, shipments):
+        pass
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('planned')
+    def plan(cls, shipments):
+        pass
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('done')
+    def done(cls, shipments):
+        pool = Pool()
+        Date = pool.get('ir.date')
+        cls.write([s for s in shipments if not s.done_date], {
+                'done_date': Date.today(),
+                })
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('checked')
+    def check(cls, shipments):
+        pool = Pool()
+        Sale = pool.get('sale.sale')
+        to_create = []
+        for shipment in shipments:
+            lines = []
+            with Transaction().set_user(0, set_context=True):
+                sale = shipment.get_sale()
+            for product in shipment.products:
+                line = product.get_sale_line(sale)
+                if line:
+                    lines.append(line)
+            if not lines:
+                continue
+            sale.lines = lines
+            to_create.append(sale._save_values)
+        if to_create:
+            Sale.create(to_create)
+
+    @classmethod
+    @ModelView.button
+    @Workflow.transition('cancel')
+    def cancel(cls, shipments):
+        pass
+
+    def get_sale(self):
+        pool = Pool()
+        Sale = pool.get('sale.sale')
+        sale = Sale()
+        sale.company = self.work.company
+        sale.currency = self.work.company.currency
+        sale.warehoues = self.warehouse
+        sale.payment_term = self.payment_term
+        sale.party = self.party
+        sale.invoice_address = self.party.address_get(type='invoice')
+        sale.shipment_address = self.party.address_get(type='delivery')
+        return sale
+
+
+class TimesheetLine:
+    __name__ = 'timesheet.line'
+
+    shipment = fields.Many2One('shipment.work', 'Shipment Work')
+
+    @staticmethod
+    def default_work():
+        return Transaction().context.get('work')
+
+
+class ShipmentWorkProduct(ModelSQL, ModelView):
+    'Shipment Product'
+    __name__ = 'shipment.work.product'
+    _rec_name = 'description'
+
+    shipment = fields.Many2One('shipment.work', 'Shipment', required=True)
+    product = fields.Many2One('product.product', 'Product',
+        domain=[
+            ('type', '!=', 'service'),
+            ])
+    description = fields.Text('Description', required=True)
+    quantity = fields.Float('Quantity', required=True,
+        digits=(16, Eval('unit_digits', 2)),
+        depends=['unit_digits'])
+    unit = fields.Many2One('product.uom', 'Unit', required=True)
+    unit_digits = fields.Function(fields.Integer('Unit Digits'),
+        'on_change_with_unit_digits')
+    sale_lines = fields.One2Many('sale.line', 'shipment_work_product',
+        'Sale Line', readonly=True)
+
+    @fields.depends('product', 'description', 'unit')
+    def on_change_product(self):
+        changes = {}
+        if not self.product:
+            return changes
+        category = self.product.default_uom.category
+        if not self.unit or self.unit not in category.uoms:
+            changes['unit'] = self.product.default_uom.id
+            changes['unit.rec_name'] = self.product.default_uom.rec_name
+            changes['unit_digits'] = self.product.default_uom.digits
+        if not self.description:
+            changes['description'] = self.product.rec_name
+        return changes
+
+    @fields.depends('unit')
+    def on_change_with_unit_digits(self, name=None):
+        if self.unit:
+            return self.unit.digits
+        return 2
+
+    def get_sale_line(self, sale):
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+        sale_line = SaleLine()
+        sale_line.sale = sale
+        sale_line.quantity = self.quantity
+        sale_line.unit = self.unit
+        sale_line.description = self.description
+        if self.product:
+            sale_line.product = self.product
+            for key, value in sale_line.on_change_product().iteritems():
+                setattr(sale_line, key, value)
+        else:
+            sale_line.unit_price = Decimal('0.0')
+        sale_line.shipment_work_product = self
+        return sale_line
+
+
+class SaleLine:
+    __name__ = 'sale.line'
+    shipment_work_product = fields.Many2One('shipment.work.product',
+        'Shipment Work Product')

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+    <data>
+
+        <record model="res.group" id="group_shipment_work">
+            <field name="name">Shipment Work</field>
+        </record>
+        <record model="res.user-res.group" id="user_admin_group_shipment_work">
+            <field name="user" ref="res.user_admin"/>
+            <field name="group" ref="group_shipment_work"/>
+        </record>
+        <record model="res.user-res.group" id="user_trigger_group_shipment_work">
+            <field name="user" ref="res.user_trigger"/>
+            <field name="group" ref="group_shipment_work"/>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_form">
+            <field name="model">shipment.work</field>
+            <field name="type">form</field>
+            <field name="name">shipment_work_form</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_list">
+            <field name="model">shipment.work</field>
+            <field name="type">tree</field>
+            <field name="name">shipment_work_list</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_calendar">
+            <field name="model">shipment.work</field>
+            <field name="type">calendar</field>
+            <field name="name">shipment_work_calendar</field>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="res_model">shipment.work</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_view_list"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_view_form"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_draft">
+            <field name="name">Draft</field>
+            <field name="sequence" eval="10"/>
+            <field name="domain">[('state', '=', 'draft')]</field>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_pending">
+            <field name="name">Pending</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain">[('state', '=', 'pending')]</field>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_planned">
+            <field name="name">Planned</field>
+            <field name="sequence" eval="30"/>
+            <field name="domain">[('state', '=', 'planned')]</field>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_done">
+            <field name="name">Done</field>
+            <field name="sequence" eval="40"/>
+            <field name="domain">[('state', '=', 'done')]</field>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_all">
+            <field name="name">All</field>
+            <field name="sequence" eval="9999"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work_calendar">
+            <field name="name">Shipment Work</field>
+            <field name="res_model">shipment.work</field>
+            <field name="domain">[('state', 'not in', ['cancel', 'done', 'checked'])]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_shipment_work_calendar_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_view_calendar"/>
+            <field name="act_window" ref="act_shipment_work_calendar"/>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_shipment_work_calendar_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_view_form"/>
+            <field name="act_window" ref="act_shipment_work_calendar"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work">
+            <field name="model" search="[('model', '=', 'shipment.work')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_user">
+            <field name="model" search="[('model', '=', 'shipment.work')]"/>
+            <field name="group" ref="group_shipment_work"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_product_view_form">
+            <field name="model">shipment.work.product</field>
+            <field name="type">form</field>
+            <field name="name">shipment_work_product_form</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_product_view_list">
+            <field name="model">shipment.work.product</field>
+            <field name="type">tree</field>
+            <field name="name">shipment_work_product_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work_product">
+            <field name="name">Shipment Product</field>
+            <field name="res_model">shipment.work.product</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_product_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_product_view_list"/>
+            <field name="act_window" ref="act_shipment_work_product"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_product_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_product_view_form"/>
+            <field name="act_window" ref="act_shipment_work_product"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_product">
+            <field name="model" search="[('model', '=', 'shipment.work.product')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_product_user">
+            <field name="model" search="[('model', '=', 'shipment.work.product')]"/>
+            <field name="group" ref="group_shipment_work"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <!-- Menus -->
+        <menuitem id="menu_shipment_work" action="act_shipment_work"
+            sequence="35" parent="stock.menu_stock" />
+
+          <record model="ir.ui.menu-res.group" id="menu_shipment_work_group_shipment_work">
+            <field name="menu" ref="menu_shipment_work"/>
+            <field name="group" ref="group_shipment_work"/>
+          </record>
+
+        <menuitem parent="menu_shipment_work" sequence="10"
+            action="act_shipment_work_calendar"
+            id="menu_shipment_work_calendar"/>
+
+    </data>
+</tryton>
