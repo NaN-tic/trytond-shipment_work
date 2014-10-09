@@ -21,13 +21,11 @@
             <field name="employees" yfill="1" yexpand="1"/>
         </page>
         <page id="costs" string="Costs">
-            <group id="locations" col="4" colspan="2" yfill="1" yexpand="1">
-                <label name="warehouse"/>
-                <field name="warehouse"/>
-                <label name="payment_term"/>
-                <field name="payment_term"/>
-                <field name="products" colspan="4"/>
-            </group>
+            <label name="warehouse"/>
+            <field name="warehouse"/>
+            <label name="payment_term"/>
+            <field name="payment_term"/>
+            <field name="products" colspan="2"/>
             <field name="timesheet_lines" colspan="2"/>
         </page>
         <page name="sales">
