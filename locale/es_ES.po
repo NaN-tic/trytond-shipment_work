@@ -16,15 +16,15 @@ msgstr "El albarán de trabajo \"%s\" debe ser cancelado antes de eliminar-lo."
 
 msgctxt "field:sale.line,shipment_work_product:"
 msgid "Shipment Work Product"
-msgstr "Producto d'albaran de trabajo"
+msgstr "Producto albarán de trabajo"
 
 msgctxt "field:shipment.work,create_date:"
 msgid "Create Date"
-msgstr "Fecha de creación"
+msgstr "Fecha creación"
 
 msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
-msgstr "Usuario de creación"
+msgstr "Usuario creación"
 
 msgctxt "field:shipment.work,done_date:"
 msgid "Done Date"
@@ -40,7 +40,7 @@ msgstr "Empleados"
 
 msgctxt "field:shipment.work,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work,party:"
 msgid "Party"
@@ -100,11 +100,11 @@ msgstr "Usuario modificación"
 
 msgctxt "field:shipment.work-company.employee,create_date:"
 msgid "Create Date"
-msgstr "Fecha de creación"
+msgstr "Fecha creación"
 
 msgctxt "field:shipment.work-company.employee,create_uid:"
 msgid "Create User"
-msgstr "Usuario de creación"
+msgstr "Usuario creación"
 
 msgctxt "field:shipment.work-company.employee,employee:"
 msgid "Employee"
@@ -112,7 +112,7 @@ msgstr "Empleado"
 
 msgctxt "field:shipment.work-company.employee,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-company.employee,rec_name:"
 msgid "Name"
@@ -132,15 +132,15 @@ msgstr "Usuario modificación"
 
 msgctxt "field:shipment.work-timesheet.work,create_date:"
 msgid "Create Date"
-msgstr "Fecha de creación"
+msgstr "Fecha creación"
 
 msgctxt "field:shipment.work-timesheet.work,create_uid:"
 msgid "Create User"
-msgstr "Usuario de creación"
+msgstr "Usuario creación"
 
 msgctxt "field:shipment.work-timesheet.work,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-timesheet.work,rec_name:"
 msgid "Name"
@@ -148,7 +148,7 @@ msgstr "Nombre"
 
 msgctxt "field:shipment.work-timesheet.work,shipment:"
 msgid "Shipment work"
-msgstr "Albarán de trabajo."
+msgstr "Albarán de trabajo"
 
 msgctxt "field:shipment.work-timesheet.work,work:"
 msgid "Work"
@@ -164,11 +164,11 @@ msgstr "Usuario modificación"
 
 msgctxt "field:shipment.work.product,create_date:"
 msgid "Create Date"
-msgstr "Fecha de creación"
+msgstr "Fecha creación"
 
 msgctxt "field:shipment.work.product,create_uid:"
 msgid "Create User"
-msgstr "Usuario de creación"
+msgstr "Usuario creación"
 
 msgctxt "field:shipment.work.product,description:"
 msgid "Description"
@@ -180,7 +180,7 @@ msgstr "Identificador"
 
 msgctxt "field:shipment.work.product,product:"
 msgid "Product"
-msgstr "Productos"
+msgstr "Producto"
 
 msgctxt "field:shipment.work.product,quantity:"
 msgid "Quantity"
@@ -279,7 +279,7 @@ msgstr "Albarán de trabajo - Trabajo"
 
 msgctxt "model:shipment.work.product,name:"
 msgid "Shipment Product"
-msgstr "Producto Albarán"
+msgstr "Producto albarán"
 
 msgctxt "selection:shipment.work,state:"
 msgid "Canceled"
@@ -307,11 +307,11 @@ msgstr "Planificado"
 
 msgctxt "view:shipment.work.product:"
 msgid "Shipment Product"
-msgstr "Producto Albarán"
+msgstr "Producto albarán"
 
 msgctxt "view:shipment.work:"
 msgid "Cancel"
-msgstr "Cancel·lar"
+msgstr "Cancelar"
 
 msgctxt "view:shipment.work:"
 msgid "Check"

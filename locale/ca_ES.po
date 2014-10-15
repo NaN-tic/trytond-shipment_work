@@ -20,11 +20,11 @@ msgstr "Producte d'albarà de treball"
 
 msgctxt "field:shipment.work,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:shipment.work,done_date:"
 msgid "Done Date"
@@ -40,7 +40,7 @@ msgstr "Empleats"
 
 msgctxt "field:shipment.work,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work,party:"
 msgid "Party"
@@ -100,11 +100,11 @@ msgstr "Usuari modificació"
 
 msgctxt "field:shipment.work-company.employee,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:shipment.work-company.employee,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:shipment.work-company.employee,employee:"
 msgid "Employee"
@@ -112,7 +112,7 @@ msgstr "Empleat"
 
 msgctxt "field:shipment.work-company.employee,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-company.employee,rec_name:"
 msgid "Name"
@@ -124,7 +124,7 @@ msgstr "Albarà"
 
 msgctxt "field:shipment.work-company.employee,write_date:"
 msgid "Write Date"
-msgstr "Data modificación"
+msgstr "Data modificació"
 
 msgctxt "field:shipment.work-company.employee,write_uid:"
 msgid "Write User"
@@ -132,15 +132,15 @@ msgstr "Usuari modificació"
 
 msgctxt "field:shipment.work-timesheet.work,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:shipment.work-timesheet.work,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:shipment.work-timesheet.work,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-timesheet.work,rec_name:"
 msgid "Name"
@@ -148,7 +148,7 @@ msgstr "Nom"
 
 msgctxt "field:shipment.work-timesheet.work,shipment:"
 msgid "Shipment work"
-msgstr "Albarà de treball."
+msgstr "Albarà de treball"
 
 msgctxt "field:shipment.work-timesheet.work,work:"
 msgid "Work"
@@ -156,7 +156,7 @@ msgstr "Treball"
 
 msgctxt "field:shipment.work-timesheet.work,write_date:"
 msgid "Write Date"
-msgstr "Data modificación"
+msgstr "Data modificació"
 
 msgctxt "field:shipment.work-timesheet.work,write_uid:"
 msgid "Write User"
@@ -164,11 +164,11 @@ msgstr "Usuari modificació"
 
 msgctxt "field:shipment.work.product,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:shipment.work.product,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:shipment.work.product,description:"
 msgid "Description"
@@ -204,11 +204,11 @@ msgstr "Unitat"
 
 msgctxt "field:shipment.work.product,unit_digits:"
 msgid "Unit Digits"
-msgstr "Decimals unitaris"
+msgstr "Decimals unitat"
 
 msgctxt "field:shipment.work.product,write_date:"
 msgid "Write Date"
-msgstr "Data modificación"
+msgstr "Data modificació"
 
 msgctxt "field:shipment.work.product,write_uid:"
 msgid "Write User"
@@ -228,7 +228,7 @@ msgstr "Albarà de treball"
 
 msgctxt "model:ir.action,name:act_shipment_work_product"
 msgid "Shipment Product"
-msgstr "Producte Albarà"
+msgstr "Producte albarà"
 
 msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
 msgid "All"
@@ -279,7 +279,7 @@ msgstr "Albarà de treball - Treball"
 
 msgctxt "model:shipment.work.product,name:"
 msgid "Shipment Product"
-msgstr "Producte Albarà"
+msgstr "Producte albarà"
 
 msgctxt "selection:shipment.work,state:"
 msgid "Canceled"
@@ -307,7 +307,7 @@ msgstr "Planificat"
 
 msgctxt "view:shipment.work.product:"
 msgid "Shipment Product"
-msgstr "Producte Albarà"
+msgstr "Producte albarà"
 
 msgctxt "view:shipment.work:"
 msgid "Cancel"
