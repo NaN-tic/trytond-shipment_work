@@ -4,6 +4,9 @@
 <tree string="Shipment Work">
     <field name="party"/>
     <field name="work_name"/>
+    <field name="employee"/>
+    <field name="planned_hours" widget="float_time"
+        float_time="company_work_time"/>
     <field name="planned_date"/>
     <field name="done_date"/>
     <field name="work_description"/>

@@ -162,18 +162,38 @@ Create payment term::
     >>> payment_term.lines.append(payment_term_line)
     >>> payment_term.save()
 
+Create Employee::
+
+    >>> Employee = Model.get('company.employee')
+    >>> employee_party = Party(name='Employee')
+    >>> employee_party.save()
+    >>> employee = Employee(company=company, party=employee_party)
+    >>> employee.save()
+
+Configure shipment work::
+
+    >>> StockConfig = Model.get('stock.configuration')
+    >>> stock_config = StockConfig(1)
+    >>> shipment_work_sequence, = Sequence.find([
+    ...     ('code', '=', 'shipment.work'),
+    ...     ])
+    >>> stock_config.shipment_work_sequence = shipment_work_sequence
+    >>> stock_config.save()
+
 Create a shipment work with two lines::
 
     >>> Shipment = Model.get('shipment.work')
     >>> Location = Model.get('stock.location')
     >>> shipment = Shipment()
-    >>> shipment.work_name = 'Work'
     >>> shipment.work_description = 'Work'
     >>> shipment.party = customer
     >>> shipment.click('pending')
+    >>> shipment.work_name
+    u'1'
     >>> shipment.state
     u'pending'
     >>> shipment.planned_date = today
+    >>> shipment.employee = employee
     >>> shipment.click('plan')
     >>> shipment.state
     u'planned'

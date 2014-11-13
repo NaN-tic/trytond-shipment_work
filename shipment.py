@@ -3,23 +3,80 @@
 from itertools import izip
 from decimal import Decimal
 
-from trytond.model import Workflow, ModelSQL, ModelView, fields
+from trytond.model import Workflow, ModelSQL, ModelView, Model, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
 
-__all__ = ['ShipmentWorkEmployee', 'ShipmentWorkWorkRelation', 'ShipmentWork',
-    'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine']
+__all__ = ['Configuration', 'ConfigurationCompany', 'ShipmentWorkWorkRelation',
+    'ShipmentWork', 'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine']
 __metaclass__ = PoolMeta
 
 
-class ShipmentWorkEmployee(ModelSQL):
-    'Shipment Work - Employee'
-    __name__ = 'shipment.work-company.employee'
-    shipment = fields.Many2One('shipment.work', 'Shipment', required=True,
-        select=True, ondelete='CASCADE')
-    employee = fields.Many2One('company.employee', 'Employee', required=True,
-        select=True, ondelete='CASCADE')
+class Configuration:
+    __name__ = 'stock.configuration'
+
+    shipment_work_sequence = fields.Function(fields.Many2One('ir.sequence',
+            'Shipment Work Sequence',
+            domain=[
+                ('company', 'in',
+                    [Eval('context', {}).get('company', -1), None]),
+                ('code', '=', 'shipment.work'),
+                ], required=True),
+        'get_company_config', 'set_company_config')
+
+    @classmethod
+    def get_company_config(self, configs, names):
+        pool = Pool()
+        CompanyConfig = pool.get('stock.configuration.company')
+
+        company_id = Transaction().context.get('company')
+        company_configs = CompanyConfig.search([
+                ('company', '=', company_id),
+                ])
+
+        res = {}
+        for fname in names:
+            res[fname] = {
+                configs[0].id: None,
+                }
+            if company_configs:
+                val = getattr(company_configs[0], fname)
+                if isinstance(val, Model):
+                    val = val.id
+                res[fname][configs[0].id] = val
+        return res
+
+    @classmethod
+    def set_company_config(self, configs, name, value):
+        pool = Pool()
+        CompanyConfig = pool.get('stock.configuration.company')
+
+        company_id = Transaction().context.get('company')
+        company_configs = CompanyConfig.search([
+                ('company', '=', company_id),
+                ])
+        if company_configs:
+            company_config = company_configs[0]
+        else:
+            company_config = CompanyConfig(company=company_id)
+        setattr(company_config, name, value)
+        company_config.save()
+
+
+class ConfigurationCompany(ModelSQL):
+    'Stock Configuration per Company'
+    __name__ = 'stock.configuration.company'
+
+    company = fields.Many2One('company.company', 'Company', required=True,
+        ondelete='CASCADE', select=True)
+    shipment_work_sequence = fields.Many2One('ir.sequence',
+        'Shipment Work Sequence',
+        domain=[
+            ('company', 'in',
+                [Eval('context', {}).get('company', -1), None]),
+            ('code', '=', 'shipment.work'),
+            ])
 
 
 class ShipmentWorkWorkRelation(ModelSQL):
@@ -46,15 +103,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     __name__ = 'shipment.work'
     _rec_name = 'work_name'
 
-    work_name = fields.Function(fields.Char('Name',
-            states={
-                'readonly': Eval('state') != 'draft',
-                'required': Eval('work_name_required', True),
-                },
-            depends=['state', 'work_name_required']),
+    work_name = fields.Function(fields.Char('Code', required=True,
+            readonly=True),
         'get_work_name', searcher='search_work_name', setter='set_work_name')
-    work_name_required = fields.Function(fields.Boolean('Name Required'),
-        'get_work_name_required')
     work = fields.One2One('shipment.work-timesheet.work', 'shipment', 'work',
         'Work',
         states={
@@ -88,10 +139,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             },
         depends=['state'])
-    employees = fields.Many2Many('shipment.work-company.employee', 'shipment',
-        'employee', 'Employees',
+    employee = fields.Many2One('company.employee', 'Employee',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            'required': Eval('state').in_(['planned', 'done', 'checked',
+                    'cancel']),
             },
         depends=['state'])
     products = fields.One2Many('shipment.work.product', 'shipment', 'Products',
@@ -103,14 +155,16 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         'Timesheet Lines',
         domain=[
             ('work', '=', Eval('work', 0)),
+            ('employee', '=', Eval('employee', 0)),
             ],
         context={
             'work': Eval('work', 0),
+            'work': Eval('employee', 0),
             },
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['work', 'state'])
+        depends=['work', 'state', 'employee'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -139,6 +193,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ], 'State', readonly=True, select=True)
     sales = fields.Function(fields.One2Many('sale.sale', None,
             'Sales'), 'get_sales')
+    planned_hours = fields.Float('Planned Hours', digits=(16, 2))
 
     @classmethod
     def __setup__(cls):
@@ -146,6 +201,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         cls._error_messages.update({
                 'delete_cancel': ('Shipment Work "%s" must be cancelled before'
                     ' deletion.'),
+                'missing_shipment_sequence': ('There is no shipment work '
+                    'sequence defined. Please define one in stock '
+                    'configuration.'),
                 })
         cls._transitions |= set((
                 ('draft', 'pending'),
@@ -192,17 +250,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         return 'draft'
 
     @staticmethod
-    def default_work_name_required():
-        return True
-
-    @staticmethod
     def default_company():
         return Transaction().context.get('company')
-
-    def get_work_name_required(self, name):
-        if Transaction().context.get('create_work'):
-            return False
-        return True
 
     def get_work_name(self, name):
         if not self.work:
@@ -230,15 +279,22 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def create(cls, vlist):
-        Work = Pool().get('timesheet.work')
+        pool = Pool()
+        Config = pool.get('stock.configuration')
+        Work = pool.get('timesheet.work')
+        Sequence = pool.get('ir.sequence')
+        config = Config(1)
         vlist = [x.copy() for x in vlist]
         to_create = []
         to_values = []
         for values in vlist:
             if (not values.get('work') and
                     not Transaction().context.get('create_work')):
+                if not config.shipment_work_sequence:
+                    cls.raise_user_error('missing_shipment_sequence')
+                code = Sequence.get_id(config.shipment_work_sequence.id)
                 to_create.append({
-                        'name': values.get('work_name'),
+                        'name': code,
                         })
                 to_values.append(values)
         if to_create:

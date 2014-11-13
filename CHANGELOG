@@ -1,2 +1,6 @@
+* Add code field and define a sequence to fill it
+* A shimpment work should be assigned only to one employee
+* Add planned hours field
+
 Version 3.4.0 - 2014-11-03
 * Initial release

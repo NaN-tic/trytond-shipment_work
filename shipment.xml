@@ -13,6 +13,11 @@
             <field name="user" ref="res.user_trigger"/>
             <field name="group" ref="group_shipment_work"/>
         </record>
+        <record model="ir.ui.view" id="stock_configuration_view_form">
+            <field name="model">stock.configuration</field>
+            <field name="name">configuration_form</field>
+            <field name="inherit" ref="stock.stock_configuration_view_form"/>
+        </record>
         <record model="ir.ui.view" id="shipment_work_view_form">
             <field name="model">shipment.work</field>
             <field name="type">form</field>
@@ -142,6 +147,21 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+        <record model="ir.sequence.type" id="sequence_type_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="code">shipment.work</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_shipment_work_group_admin">
+            <field name="sequence_type" ref="sequence_type_shipment_work"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+
+        <record model="ir.sequence" id="sequence_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="code">shipment.work</field>
+        </record>
+
         <!-- Menus -->
         <menuitem id="menu_shipment_work" action="act_shipment_work"
             sequence="35" parent="stock.menu_stock" />

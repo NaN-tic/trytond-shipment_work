@@ -6,9 +6,10 @@ from .shipment import *
 
 def register():
     Pool.register(
+        Configuration,
+        ConfigurationCompany,
         ShipmentWork,
         ShipmentWorkProduct,
-        ShipmentWorkEmployee,
         ShipmentWorkWorkRelation,
         TimesheetLine,
         SaleLine,
