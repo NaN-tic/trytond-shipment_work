@@ -13,4 +13,5 @@ def register():
         ShipmentWorkWorkRelation,
         TimesheetLine,
         SaleLine,
+        StockMove,
         module='shipment_work', type_='model')

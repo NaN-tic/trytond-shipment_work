@@ -9,7 +9,8 @@ from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
 
 __all__ = ['Configuration', 'ConfigurationCompany', 'ShipmentWorkWorkRelation',
-    'ShipmentWork', 'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine']
+    'ShipmentWork', 'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine',
+    'StockMove']
 __metaclass__ = PoolMeta
 
 
@@ -174,7 +175,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         states={
             'required': (Eval('state').in_(['done', 'checked']) &
                 Bool(Eval('products', []))),
-            'readonly': Eval('state').in_(['checked', 'cancel']),
+            'readonly': (Eval('state').in_(['checked', 'cancel']) |
+                Bool(Eval('stock_moves', []))),
             },
         depends=['state'])
     payment_term = fields.Many2One('account.invoice.payment_term',
@@ -200,6 +202,24 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('invoice', 'Invoice'),
             ('no_invoice', 'No Invoice'),
             ], 'Invoice method', required=True)
+    customer_location = fields.Function(fields.Many2One('stock.location',
+            'Customer Location'), 'on_change_with_customer_location')
+    warehouse_output = fields.Function(fields.Many2One('stock.location',
+            'Warehouse Output'), 'on_change_with_warehouse_output')
+    stock_moves = fields.One2Many('stock.move', 'work_shipment',
+        'Stock Moves',
+        domain=[
+            ('from_location', '=', Eval('warehouse_output')),
+            ('to_location', '=', Eval('customer_location')),
+            ],
+        add_remove=[
+            ('state', '=', 'draft'),
+            ('work_shipment', '=', None),
+            ],
+        states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            },
+        depends=['customer_location', 'warehouse_output', 'state'])
 
     @classmethod
     def __setup__(cls):
@@ -263,6 +283,16 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def default_company():
         return Transaction().context.get('company')
 
+    @fields.depends('party')
+    def on_change_with_customer_location(self, name=None):
+        if self.party:
+            return self.party.customer_location.id
+
+    @fields.depends('warehouse')
+    def on_change_with_warehouse_output(self, name=None):
+        if self.warehouse:
+            return self.warehouse.output_location.id
+
     def get_work_name(self, name):
         if not self.work:
             return ''
@@ -324,6 +354,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             defaults = {}
         defaults.setdefault('work')
         defaults.setdefault('timesheet_lines', [])
+        defaults.setdefault('stock_moves', [])
         with Transaction().set_context(create_work=True):
             new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
         new_works = Work.copy([s.work for s in shipments])
@@ -378,8 +409,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @Workflow.transition('checked')
     def check(cls, shipments):
         pool = Pool()
+        ShipmentOut = pool.get('stock.shipment.out')
         Sale = pool.get('sale.sale')
-        to_create = []
+        sales_to_create = []
+        shipments_to_create = []
         for shipment in shipments:
             for invoice_method, _ in cls.invoice_method.selection:
                 lines = []
@@ -392,9 +425,18 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 if not lines:
                     continue
                 sale.lines = lines
-                to_create.append(sale._save_values)
-        if to_create:
-            Sale.create(to_create)
+                sales_to_create.append(sale._save_values)
+            stock_shipment = shipment.get_stock_shipment()
+            if stock_shipment:
+                shipments_to_create.append(stock_shipment._save_values)
+        if sales_to_create:
+            Sale.create(sales_to_create)
+        if shipments_to_create:
+            stock_shipments = ShipmentOut.create(shipments_to_create)
+            ShipmentOut.wait(stock_shipments)
+            ShipmentOut.assign(stock_shipments)
+            ShipmentOut.pack(stock_shipments)
+            ShipmentOut.done(stock_shipments)
 
     @classmethod
     @ModelView.button
@@ -408,7 +450,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale = Sale()
         sale.company = self.work.company
         sale.currency = self.work.company.currency
-        sale.warehoues = self.warehouse
+        sale.warehouse = self.warehouse
         sale.payment_term = self.payment_term
         sale.party = self.party
         sale.sale_date = None
@@ -419,6 +461,23 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         else:
             sale.invoice_method = 'manual'
         return sale
+
+    def get_stock_shipment(self):
+        pool = Pool()
+        ShipmentOut = pool.get('stock.shipment.out')
+        if not self.stock_moves:
+            return
+        shipment = ShipmentOut()
+        shipment.company = self.work.company
+        shipment.warehoues = self.warehouse
+        shipment.customer = self.party
+        shipment.planned_date = self.planned_date
+        shipment.effective_date = self.done_date
+        shipment.delivery_address = self.party.address_get(type='delivery')
+        shipment.reference = self.work_name
+        shipment.moves = self.stock_moves
+        shipment.state = 'draft'
+        return shipment
 
 
 class TimesheetLine:
@@ -503,3 +562,9 @@ class SaleLine:
     __name__ = 'sale.line'
     shipment_work_product = fields.Many2One('shipment.work.product',
         'Shipment Work Product')
+
+
+class StockMove:
+    __name__ = 'stock.move'
+
+    work_shipment = fields.Many2One('shipment.work', 'Shipment Work')

@@ -32,6 +32,9 @@
             <field name="products" colspan="2"/>
             <field name="timesheet_lines" colspan="2"/>
         </page>
+        <page name="stock_moves">
+            <field name="stock_moves"/>
+        </page>
         <page name="sales">
             <field name="sales"/>
         </page>

@@ -86,6 +86,10 @@ msgctxt "field:shipment.work,state:"
 msgid "State"
 msgstr "Estado"
 
+msgctxt "field:shipment.work,stock_moves:"
+msgid "Stock Moves"
+msgstr "Movimientos de existencias"
+
 msgctxt "field:shipment.work,timesheet_lines:"
 msgid "Timesheet Lines"
 msgstr "Líneas de parte de trabajo"
@@ -93,6 +97,10 @@ msgstr "Líneas de parte de trabajo"
 msgctxt "field:shipment.work,warehouse:"
 msgid "Warehouse"
 msgstr "Almacén"
+
+msgctxt "field:shipment.work,warehouse_output:"
+msgid "Warehouse Output"
+msgstr "Ubicación de salida"
 
 msgctxt "field:shipment.work,work:"
 msgid "Work"
@@ -237,6 +245,10 @@ msgstr "Fecha modificación"
 msgctxt "field:stock.configuration.company,write_uid:"
 msgid "Write User"
 msgstr "Usuario modificación"
+
+msgctxt "field:stock.move,work_shipment:"
+msgid "Shipment Work"
+msgstr "Albaranes de trabajo"
 
 msgctxt "field:timesheet.line,shipment:"
 msgid "Shipment Work"
