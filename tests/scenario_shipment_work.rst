@@ -205,9 +205,13 @@ Create a shipment work with two lines::
     >>> line.description = 'Unkown product'
     >>> line.quantity = 1.0
     >>> line.unit = unit
+    >>> line.quantity = 1.0
+    >>> line.invoice_method
+    u'invoice'
     >>> line = shipment.products.new()
     >>> line.product = product
     >>> line.quantity = 1.0
+    >>> line.invoice_method = 'no_invoice'
     >>> warehouse, = Location.find([('type', '=', 'warehouse')])
     >>> shipment.warehouse = warehouse
     >>> shipment.payment_term = payment_term
@@ -218,10 +222,16 @@ When the shipment work is checked a sale is created::
     >>> shipment.click('check')
     >>> shipment.state
     u'checked'
-    >>> sale, = shipment.sales
-    >>> sale.state
+    >>> invoice_sale, no_invoice_sale = shipment.sales
+    >>> invoice_sale.state
     u'draft'
-    >>> description_line, product_line = sale.lines
+    >>> no_invoice_sale.state
+    u'draft'
+    >>> invoice_sale.invoice_method
+    u'order'
+    >>> no_invoice_sale.invoice_method
+    u'manual'
+    >>> description_line, =  invoice_sale.lines
     >>> description_line.product
     >>> description_line.description
     u'Unkown product'
@@ -231,6 +241,7 @@ When the shipment work is checked a sale is created::
     True
     >>> description_line.unit_price
     Decimal('0.0')
+    >>> product_line, = no_invoice_sale.lines
     >>> product_line.product == product
     True
     >>> product_line.unit_price == product.template.list_price

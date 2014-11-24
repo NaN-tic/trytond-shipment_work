@@ -7,4 +7,5 @@
     <field name="description"/>
     <field name="quantity"/>
     <field name="unit"/>
+    <field name="invoice_method"/>
 </tree>

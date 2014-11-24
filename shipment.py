@@ -142,15 +142,17 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     employee = fields.Many2One('company.employee', 'Employee',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
-            'required': Eval('state').in_(['planned', 'done', 'checked',
-                    'cancel']),
+            'required': Eval('state').in_(['planned', 'done', 'checked']),
             },
         depends=['state'])
     products = fields.One2Many('shipment.work.product', 'shipment', 'Products',
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['state'])
+        context={
+            'invoice_method': Eval('invoice_method'),
+            },
+        depends=['state', 'invoice_method'])
     timesheet_lines = fields.One2Many('timesheet.line', 'shipment',
         'Timesheet Lines',
         domain=[
@@ -194,6 +196,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     sales = fields.Function(fields.One2Many('sale.sale', None,
             'Sales'), 'get_sales')
     planned_hours = fields.Float('Planned Hours', digits=(16, 2))
+    invoice_method = fields.Selection([
+            ('invoice', 'Invoice'),
+            ('no_invoice', 'No Invoice'),
+            ], 'Invoice method', required=True)
 
     @classmethod
     def __setup__(cls):
@@ -250,6 +256,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         return 'draft'
 
     @staticmethod
+    def default_invoice_method():
+        return 'invoice'
+
+    @staticmethod
     def default_company():
         return Transaction().context.get('company')
 
@@ -273,7 +283,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @classmethod
     def set_work_name(cls, works, name, value):
         Work = Pool().get('timesheet.work')
-        Work.write([p.work for p in works], {
+        Work.write([p.work for p in works if p.work], {
                 'name': value,
                 })
 
@@ -287,6 +297,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         vlist = [x.copy() for x in vlist]
         to_create = []
         to_values = []
+        all_values = []
         for values in vlist:
             if (not values.get('work') and
                     not Transaction().context.get('create_work')):
@@ -297,11 +308,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                         'name': code,
                         })
                 to_values.append(values)
+            else:
+                all_values.append(values)
         if to_create:
             works = Work.create(to_create)
             for values, work in izip(to_values, works):
                 values['work'] = work.id
-        return super(ShipmentWork, cls).create(vlist)
+        return super(ShipmentWork, cls).create(all_values + to_values)
 
     @classmethod
     def copy(cls, shipments, defaults=None):
@@ -368,17 +381,18 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         Sale = pool.get('sale.sale')
         to_create = []
         for shipment in shipments:
-            lines = []
-            with Transaction().set_user(0, set_context=True):
-                sale = shipment.get_sale()
-            for product in shipment.products:
-                line = product.get_sale_line(sale)
-                if line:
-                    lines.append(line)
-            if not lines:
-                continue
-            sale.lines = lines
-            to_create.append(sale._save_values)
+            for invoice_method, _ in cls.invoice_method.selection:
+                lines = []
+                with Transaction().set_user(0, set_context=True):
+                    sale = shipment.get_sale(invoice_method)
+                for product in shipment.products:
+                    line = product.get_sale_line(sale, invoice_method)
+                    if line:
+                        lines.append(line)
+                if not lines:
+                    continue
+                sale.lines = lines
+                to_create.append(sale._save_values)
         if to_create:
             Sale.create(to_create)
 
@@ -388,7 +402,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def cancel(cls, shipments):
         pass
 
-    def get_sale(self):
+    def get_sale(self, invoice_method):
         pool = Pool()
         Sale = pool.get('sale.sale')
         sale = Sale()
@@ -397,8 +411,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale.warehoues = self.warehouse
         sale.payment_term = self.payment_term
         sale.party = self.party
+        sale.sale_date = None
         sale.invoice_address = self.party.address_get(type='invoice')
         sale.shipment_address = self.party.address_get(type='delivery')
+        if invoice_method == 'invoice':
+            sale.invoice_method = 'order'
+        else:
+            sale.invoice_method = 'manual'
         return sale
 
 
@@ -431,6 +450,14 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
         'on_change_with_unit_digits')
     sale_lines = fields.One2Many('sale.line', 'shipment_work_product',
         'Sale Line', readonly=True)
+    invoice_method = fields.Selection([
+            ('invoice', 'Invoice'),
+            ('no_invoice', 'No Invoice'),
+            ], 'Invoice method', required=True)
+
+    @staticmethod
+    def default_invoice_method():
+        return Transaction().context.get('invoice_method', 'invoice')
 
     @fields.depends('product', 'description', 'unit')
     def on_change_product(self):
@@ -452,8 +479,10 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
             return self.unit.digits
         return 2
 
-    def get_sale_line(self, sale):
+    def get_sale_line(self, sale, invoice_method):
         pool = Pool()
+        if invoice_method != self.invoice_method:
+            return
         SaleLine = pool.get('sale.line')
         sale_line = SaleLine()
         sale_line.sale = sale

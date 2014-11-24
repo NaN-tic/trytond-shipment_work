@@ -12,4 +12,6 @@
     <field name="quantity"/>
     <label name="unit"/>
     <field name="unit"/>
+    <label name="invoice_method"/>
+    <field name="invoice_method"/>
 </form>

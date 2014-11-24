@@ -50,6 +50,10 @@ msgctxt "field:shipment.work,id:"
 msgid "ID"
 msgstr "ID"
 
+msgctxt "field:shipment.work,invoice_method:"
+msgid "Invoice method"
+msgstr "Mètode facturació"
+
 msgctxt "field:shipment.work,party:"
 msgid "Party"
 msgstr "Tercer"
@@ -157,6 +161,10 @@ msgstr "Descripció"
 msgctxt "field:shipment.work.product,id:"
 msgid "ID"
 msgstr "Identificador"
+
+msgctxt "field:shipment.work.product,invoice_method:"
+msgid "Invoice method"
+msgstr "Mètode facturació"
 
 msgctxt "field:shipment.work.product,product:"
 msgid "Product"
@@ -305,6 +313,14 @@ msgctxt "model:stock.configuration.company,name:"
 msgid "Stock Configuration per Company"
 msgstr "Configuració de estocs per empresa"
 
+msgctxt "selection:shipment.work,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
 msgctxt "selection:shipment.work,state:"
 msgid "Canceled"
 msgstr "Cancel·lat"
@@ -328,6 +344,14 @@ msgstr "Pendent"
 msgctxt "selection:shipment.work,state:"
 msgid "Planned"
 msgstr "Planificat"
+
+msgctxt "selection:shipment.work.product,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work.product,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
 
 msgctxt "view:shipment.work.product:"
 msgid "Shipment Product"

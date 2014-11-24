@@ -1,3 +1,4 @@
+* Add invoice method to shipment and products
 * Add code field and define a sequence to fill it
 * A shimpment work should be assigned only to one employee
 * Add planned hours field
