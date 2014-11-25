@@ -129,14 +129,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             },
         depends=['state'])
-    work_description = fields.Text('Work Description', required=True,
+    work_description = fields.Text('Work Description',
         states={
             'readonly': Eval('state') != 'draft',
             },
         depends=['state'])
     done_description = fields.Text('Done Description',
         states={
-            'required': Eval('state') == 'done',
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             },
         depends=['state'])
