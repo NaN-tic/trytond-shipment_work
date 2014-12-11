@@ -74,8 +74,7 @@ class ConfigurationCompany(ModelSQL):
     shipment_work_sequence = fields.Many2One('ir.sequence',
         'Shipment Work Sequence',
         domain=[
-            ('company', 'in',
-                [Eval('context', {}).get('company', -1), None]),
+            ('company', '=', Eval('company', -1)),
             ('code', '=', 'shipment.work'),
             ])
 
@@ -104,11 +103,14 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     __name__ = 'shipment.work'
     _rec_name = 'work_name'
 
+    company = fields.Many2One('company.company', 'Company', required=True,
+        select=True)
     work_name = fields.Function(fields.Char('Code', required=True,
             readonly=True),
         'get_work_name', searcher='search_work_name', setter='set_work_name')
     work = fields.One2One('shipment.work-timesheet.work', 'shipment', 'work',
         'Work',
+        domain=[('company', '=', Eval('company'))],
         states={
             'readonly': Eval('state') != 'draft',
             },
@@ -144,6 +146,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             'required': Eval('state').in_(['planned', 'done', 'checked']),
             },
+        domain=[('company', '=', Eval('company'))],
         depends=['state'])
     products = fields.One2Many('shipment.work.product', 'shipment', 'Products',
         states={
@@ -158,6 +161,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         domain=[
             ('work', '=', Eval('work', 0)),
             ('employee', '=', Eval('employee', 0)),
+            ('company', '=', Eval('company')),
             ],
         context={
             'work': Eval('work', 0),
@@ -166,7 +170,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['work', 'state', 'employee'])
+        depends=['work', 'state', 'employee', 'company'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -213,6 +217,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         domain=[
             ('from_location', '=', Eval('warehouse_output')),
             ('to_location', '=', Eval('customer_location')),
+            ('company', '=', Eval('company')),
             ],
         add_remove=[
             ('state', '=', 'draft'),
@@ -221,7 +226,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['customer_location', 'warehouse_output', 'state'])
+        depends=['customer_location', 'warehouse_output', 'state', 'company'])
 
     @classmethod
     def __setup__(cls):
@@ -486,10 +491,6 @@ class TimesheetLine:
     __name__ = 'timesheet.line'
 
     shipment = fields.Many2One('shipment.work', 'Shipment Work')
-
-    @staticmethod
-    def default_work():
-        return Transaction().context.get('work')
 
 
 class ShipmentWorkProduct(ModelSQL, ModelView):
