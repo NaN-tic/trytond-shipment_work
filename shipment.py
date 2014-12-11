@@ -200,7 +200,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     invoice_method = fields.Selection([
             ('invoice', 'Invoice'),
             ('no_invoice', 'No Invoice'),
-            ], 'Invoice method', required=True)
+            ], 'Invoice method',
+            states={
+                'readonly': Eval('state').in_(['checked', 'cancel']),
+            }, required=True)
     customer_location = fields.Function(fields.Many2One('stock.location',
             'Customer Location'), 'on_change_with_customer_location')
     warehouse_output = fields.Function(fields.Many2One('stock.location',
