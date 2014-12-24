@@ -11,4 +11,6 @@
     <field name="done_date"/>
     <field name="work_description"/>
     <field name="state"/>
+    <button name="pending" string="Pending"/>
+    <button name="plan" string="Plan"/>
 </tree>
