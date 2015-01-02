@@ -1,5 +1,6 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
+from sql.aggregate import Sum
 from itertools import izip
 from decimal import Decimal
 
@@ -7,6 +8,7 @@ from trytond.model import Workflow, ModelSQL, ModelView, Model, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
+from trytond.tools import grouped_slice, reduce_ids
 
 __all__ = ['Configuration', 'ConfigurationCompany', 'ShipmentWorkWorkRelation',
     'ShipmentWork', 'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine',
@@ -201,6 +203,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     sales = fields.Function(fields.One2Many('sale.sale', None,
             'Sales'), 'get_sales')
     planned_hours = fields.Float('Planned Hours', digits=(16, 2))
+    total_hours = fields.Function(fields.Float('Total Hours',
+            digits=(16, 2)),
+        'get_total_hours')
     invoice_method = fields.Selection([
             ('invoice', 'Invoice'),
             ('no_invoice', 'No Invoice'),
@@ -323,6 +328,27 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         Work.write([p.work for p in works if p.work], {
                 'name': value,
                 })
+
+    @classmethod
+    def get_total_hours(cls, works, name):
+        pool = Pool()
+        Line = pool.get('timesheet.line')
+        Relation = pool.get('shipment.work-timesheet.work')
+        relation = Relation.__table__()
+        line = Line.__table__()
+        cursor = Transaction().cursor
+
+        work_ids = [w.id for w in works]
+        hours = dict.fromkeys(work_ids, 0)
+        for sub_ids in grouped_slice(work_ids):
+            red_sql = reduce_ids(relation.shipment, sub_ids)
+            cursor.execute(*relation.join(line,
+                    condition=(relation.work == line.work)
+                    ).select(relation.shipment, Sum(line.hours),
+                    where=red_sql,
+                    group_by=relation.shipment))
+            hours.update(dict(cursor.fetchall()))
+        return hours
 
     @classmethod
     def create(cls, vlist):

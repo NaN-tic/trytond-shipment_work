@@ -26,6 +26,10 @@ msgctxt "field:sale.line,shipment_work_product:"
 msgid "Shipment Work Product"
 msgstr "Producto albarán de trabajo"
 
+msgctxt "field:shipment.work,company:"
+msgid "Company"
+msgstr "Empresa"
+
 msgctxt "field:shipment.work,create_date:"
 msgid "Create Date"
 msgstr "Fecha creación"
@@ -33,6 +37,10 @@ msgstr "Fecha creación"
 msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
 msgstr "Usuario creación"
+
+msgctxt "field:shipment.work,customer_location:"
+msgid "Customer Location"
+msgstr "Ubicación de cliente"
 
 msgctxt "field:shipment.work,done_date:"
 msgid "Done Date"
@@ -93,6 +101,10 @@ msgstr "Movimientos de existencias"
 msgctxt "field:shipment.work,timesheet_lines:"
 msgid "Timesheet Lines"
 msgstr "Líneas de parte de trabajo"
+
+msgctxt "field:shipment.work,total_hours:"
+msgid "Total Hours"
+msgstr "Horas totales"
 
 msgctxt "field:shipment.work,warehouse:"
 msgid "Warehouse"

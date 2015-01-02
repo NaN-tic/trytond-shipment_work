@@ -1,3 +1,4 @@
+* Add total_hours field
 * Allow to relate stock moves with a shipment work and make them when checked
 * Add invoice method to shipment and products
 * Add code field and define a sequence to fill it
