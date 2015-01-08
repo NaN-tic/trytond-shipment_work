@@ -30,6 +30,14 @@ msgctxt "field:shipment.work,company:"
 msgid "Company"
 msgstr "Empresa"
 
+msgctxt "field:shipment.work,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:shipment.work,company:"
+msgid "Company"
+msgstr "Empresa"
+
 msgctxt "field:shipment.work,create_date:"
 msgid "Create Date"
 msgstr "Data creació"
@@ -37,6 +45,14 @@ msgstr "Data creació"
 msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
 msgstr "Usuari creació"
+
+msgctxt "field:shipment.work,customer_location:"
+msgid "Customer Location"
+msgstr "Ubicació del client"
+
+msgctxt "field:shipment.work,customer_location:"
+msgid "Customer Location"
+msgstr "Ubicació del client"
 
 msgctxt "field:shipment.work,customer_location:"
 msgid "Customer Location"
@@ -50,9 +66,9 @@ msgctxt "field:shipment.work,done_description:"
 msgid "Done Description"
 msgstr "Descripció treball realitzat"
 
-msgctxt "field:shipment.work,employee:"
-msgid "Employee"
-msgstr "Empleat"
+msgctxt "field:shipment.work,employees:"
+msgid "Employees"
+msgstr "Empleats"
 
 msgctxt "field:shipment.work,id:"
 msgid "ID"
@@ -106,6 +122,14 @@ msgctxt "field:shipment.work,total_hours:"
 msgid "Total Hours"
 msgstr "Hores totals"
 
+msgctxt "field:shipment.work,total_hours:"
+msgid "Total Hours"
+msgstr "Hores totals"
+
+msgctxt "field:shipment.work,total_hours:"
+msgid "Total Hours"
+msgstr "Hores totals"
+
 msgctxt "field:shipment.work,warehouse:"
 msgid "Warehouse"
 msgstr "Magatzem"
@@ -131,6 +155,70 @@ msgid "Write Date"
 msgstr "Data modificación"
 
 msgctxt "field:shipment.work,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:shipment.work-company.employee,create_date:"
+msgid "Create Date"
+msgstr "Data de creació"
+
+msgctxt "field:shipment.work-company.employee,create_uid:"
+msgid "Create User"
+msgstr "Usuari de creació"
+
+msgctxt "field:shipment.work-company.employee,employee:"
+msgid "Employee"
+msgstr "Empleat"
+
+msgctxt "field:shipment.work-company.employee,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work-company.employee,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work-company.employee,shipment:"
+msgid "Shipment work"
+msgstr "Albarà de treball"
+
+msgctxt "field:shipment.work-company.employee,write_date:"
+msgid "Write Date"
+msgstr "Data modificación"
+
+msgctxt "field:shipment.work-company.employee,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:shipment.work-company.employee,create_date:"
+msgid "Create Date"
+msgstr "Data de creació"
+
+msgctxt "field:shipment.work-company.employee,create_uid:"
+msgid "Create User"
+msgstr "Usuari de creació"
+
+msgctxt "field:shipment.work-company.employee,employee:"
+msgid "Employee"
+msgstr "Empleat"
+
+msgctxt "field:shipment.work-company.employee,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:shipment.work-company.employee,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work-company.employee,shipment:"
+msgid "Shipment work"
+msgstr "Albarà de treball"
+
+msgctxt "field:shipment.work-company.employee,write_date:"
+msgid "Write Date"
+msgstr "Data modificación"
+
+msgctxt "field:shipment.work-company.employee,write_uid:"
 msgid "Write User"
 msgstr "Usuari modificació"
 
@@ -324,6 +412,14 @@ msgstr "Albarà de treball"
 msgctxt "model:shipment.work,name:"
 msgid "Shipment Work"
 msgstr "Albarà de treball"
+
+msgctxt "model:shipment.work-company.employee,name:"
+msgid "ShipmentWork - Employee"
+msgstr "Albarà de treball - Empleat"
+
+msgctxt "model:shipment.work-company.employee,name:"
+msgid "ShipmentWork - Employee"
+msgstr "Albarà de treball - Empleat"
 
 msgctxt "model:shipment.work-timesheet.work,name:"
 msgid "ShipmentWork - Work"

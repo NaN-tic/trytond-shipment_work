@@ -11,8 +11,8 @@ from trytond.transaction import Transaction
 from trytond.tools import grouped_slice, reduce_ids
 
 __all__ = ['Configuration', 'ConfigurationCompany', 'ShipmentWorkWorkRelation',
-    'ShipmentWork', 'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine',
-    'StockMove']
+    'ShipmentWorkEmployee', 'ShipmentWork', 'TimesheetLine',
+    'ShipmentWorkProduct', 'SaleLine', 'StockMove']
 __metaclass__ = PoolMeta
 
 
@@ -100,6 +100,24 @@ class ShipmentWorkWorkRelation(ModelSQL):
             ]
 
 
+class ShipmentWorkEmployee(ModelSQL):
+    'ShipmentWork - Employee'
+    __name__ = 'shipment.work-company.employee'
+    shipment = fields.Many2One('shipment.work', 'Shipment work',
+        ondelete='CASCADE', required=True, select=True)
+    employee = fields.Many2One('company.employee', 'Employee', required=True,
+        select=True)
+
+
+class ShipmentWorkEmployee(ModelSQL):
+    'ShipmentWork - Employee'
+    __name__ = 'shipment.work-company.employee'
+    shipment = fields.Many2One('shipment.work', 'Shipment work',
+        ondelete='CASCADE', required=True, select=True)
+    employee = fields.Many2One('company.employee', 'Employee', required=True,
+        select=True)
+
+
 class ShipmentWork(Workflow, ModelSQL, ModelView):
     'Shipment Work'
     __name__ = 'shipment.work'
@@ -143,7 +161,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             },
         depends=['state'])
-    employee = fields.Many2One('company.employee', 'Employee',
+    employees = fields.Many2Many('shipment.work-company.employee',
+        'shipment', 'employee', 'Employees',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
             'required': Eval('state').in_(['planned', 'done', 'checked']),
@@ -162,17 +181,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         'Timesheet Lines',
         domain=[
             ('work', '=', Eval('work', 0)),
-            ('employee', '=', Eval('employee', 0)),
             ('company', '=', Eval('company')),
             ],
-        context={
-            'work': Eval('work', 0),
-            'work': Eval('employee', 0),
-            },
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['work', 'state', 'employee', 'company'])
+        depends=['work', 'state', 'company'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -362,8 +376,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         to_values = []
         all_values = []
         for values in vlist:
-            if (not values.get('work') and
-                    not Transaction().context.get('create_work')):
+            if not values.get('work'):
                 if not config.shipment_work_sequence:
                     cls.raise_user_error('missing_shipment_sequence')
                 code = Sequence.get_id(config.shipment_work_sequence.id)
@@ -381,20 +394,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def copy(cls, shipments, defaults=None):
-        pool = Pool()
-        Work = pool.get('timesheet.work')
         if defaults is None:
             defaults = {}
         defaults.setdefault('work')
+        defaults.setdefault('work_name')
         defaults.setdefault('timesheet_lines', [])
         defaults.setdefault('stock_moves', [])
-        with Transaction().set_context(create_work=True):
-            new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
-        new_works = Work.copy([s.work for s in shipments])
-        to_write = []
-        for work, shipment in izip(new_works, new_shipments):
-            to_write.extend(([shipment], {'work': work.id}))
-        cls.write(*to_write)
+        new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
         return new_shipments
 
     @classmethod
@@ -524,7 +530,8 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
     __name__ = 'shipment.work.product'
     _rec_name = 'description'
 
-    shipment = fields.Many2One('shipment.work', 'Shipment', required=True)
+    shipment = fields.Many2One('shipment.work', 'Shipment', required=True,
+        ondelete='CASCADE')
     product = fields.Many2One('product.product', 'Product',
         domain=[
             ('type', '!=', 'service'),

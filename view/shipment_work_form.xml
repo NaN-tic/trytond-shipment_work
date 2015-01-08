@@ -14,10 +14,6 @@
         <label name="company"/>
         <field name="company"/>
     </group>
-    <label name="employee"/>
-    <field name="employee"/>
-    <label name="invoice_method"/>
-    <field name="invoice_method"/>
 
     <label name="planned_hours"/>
     <field name="planned_hours" widget="float_time"
@@ -25,12 +21,20 @@
     <label name="total_hours"/>
     <field name="total_hours" widget="float_time"
         float_time="company_work_time"/>
+    <label name="invoice_method"/>
+    <field name="invoice_method"/>
     <notebook>
         <page id="general" string="General" col="1">
             <separator name="work_description"/>
             <field name="work_description"/>
             <separator name="done_description"/>
             <field name="done_description"/>
+        </page>
+        <page name="employees">
+            <field name="employees"/>
+        </page>
+        <page name="employees">
+            <field name="employees"/>
         </page>
         <page id="costs" string="Costs">
             <label name="warehouse"/>

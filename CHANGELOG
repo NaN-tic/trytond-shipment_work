@@ -1,3 +1,5 @@
+* Fix copy defintion and allow to delete shipments with lines
+* Allow to specify multiple employees per shipment work
 * Add total_hours field
 * Allow to relate stock moves with a shipment work and make them when checked
 * Add invoice method to shipment and products

@@ -11,6 +11,7 @@ def register():
         ShipmentWork,
         ShipmentWorkProduct,
         ShipmentWorkWorkRelation,
+        ShipmentWorkEmployee,
         TimesheetLine,
         SaleLine,
         StockMove,
