@@ -33,9 +33,6 @@
         <page name="employees">
             <field name="employees"/>
         </page>
-        <page name="employees">
-            <field name="employees"/>
-        </page>
         <page id="costs" string="Costs">
             <label name="warehouse"/>
             <field name="warehouse"/>

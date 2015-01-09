@@ -109,15 +109,6 @@ class ShipmentWorkEmployee(ModelSQL):
         select=True)
 
 
-class ShipmentWorkEmployee(ModelSQL):
-    'ShipmentWork - Employee'
-    __name__ = 'shipment.work-company.employee'
-    shipment = fields.Many2One('shipment.work', 'Shipment work',
-        ondelete='CASCADE', required=True, select=True)
-    employee = fields.Many2One('company.employee', 'Employee', required=True,
-        select=True)
-
-
 class ShipmentWork(Workflow, ModelSQL, ModelView):
     'Shipment Work'
     __name__ = 'shipment.work'
@@ -216,7 +207,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ], 'State', readonly=True, select=True)
     sales = fields.Function(fields.One2Many('sale.sale', None,
             'Sales'), 'get_sales')
-    planned_hours = fields.Float('Planned Hours', digits=(16, 2))
+    planned_hours = fields.Float('Planned Hours', digits=(16, 2),
+        states={
+            'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+        },
+        depends=['state'])
     total_hours = fields.Function(fields.Float('Total Hours',
             digits=(16, 2)),
         'get_total_hours')
