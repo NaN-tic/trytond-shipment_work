@@ -134,6 +134,7 @@ Create product::
 
     >>> ProductUom = Model.get('product.uom')
     >>> unit, = ProductUom.find([('name', '=', 'Unit')])
+    >>> hour, = ProductUom.find([('name', '=', 'Hour')])
     >>> ProductTemplate = Model.get('product.template')
     >>> Product = Model.get('product.product')
     >>> product = Product()
@@ -152,6 +153,22 @@ Create product::
     >>> template.save()
     >>> product.template = template
     >>> product.save()
+    >>> hours_product = Product()
+    >>> template = ProductTemplate()
+    >>> template.name = 'product'
+    >>> template.category = category
+    >>> template.default_uom = hour
+    >>> template.type = 'service'
+    >>> template.purchasable = True
+    >>> template.salable = True
+    >>> template.list_price = Decimal('10')
+    >>> template.cost_price = Decimal('8')
+    >>> template.cost_price_method = 'fixed'
+    >>> template.account_expense = expense
+    >>> template.account_revenue = revenue
+    >>> template.save()
+    >>> hours_product.template = template
+    >>> hours_product.save()
 
 Create payment term::
 
@@ -178,6 +195,7 @@ Configure shipment work::
     ...     ('code', '=', 'shipment.work'),
     ...     ])
     >>> stock_config.shipment_work_sequence = shipment_work_sequence
+    >>> stock_config.shipment_work_hours_product = hours_product
     >>> stock_config.save()
 
 Create a shipment work with two lines::
@@ -193,7 +211,7 @@ Create a shipment work with two lines::
     >>> shipment.state
     u'pending'
     >>> shipment.planned_date = today
-    >>> shipment.employee = employee
+    >>> shipment.employees.append(employee)
     >>> shipment.click('plan')
     >>> shipment.state
     u'planned'
@@ -246,3 +264,58 @@ When the shipment work is checked a sale is created::
     True
     >>> product_line.unit_price == product.template.list_price
     True
+
+Create a shipment work to invoice its hours::
+
+    >>> shipment = Shipment()
+    >>> shipment.work_description = 'Work'
+    >>> shipment.party = customer
+    >>> shipment.timesheet_invoice_method
+    'invoice'
+    >>> shipment.click('pending')
+    >>> shipment.state
+    u'pending'
+    >>> shipment.planned_date = today
+    >>> employee = Employee(employee.id)
+    >>> shipment.employees.append(employee)
+    >>> shipment.click('plan')
+    >>> timesheet_line = shipment.timesheet_lines.new()
+    >>> timesheet_line.hours = 2.5
+    >>> timesheet_line.employee = employee
+    >>> timesheet_line.work = shipment.work
+    >>> timesheet_line.invoice_method
+    u'invoice'
+    >>> timesheet_line = shipment.timesheet_lines.new()
+    >>> timesheet_line.hours = 1.0
+    >>> timesheet_line.employee = employee
+    >>> timesheet_line.work = shipment.work
+    >>> timesheet_line.invoice_method = 'no_invoice'
+    >>> shipment.done_description = 'Done'
+    >>> shipment.payment_term = payment_term
+    >>> shipment.click('done')
+    >>> shipment.total_hours
+    3.5
+    >>> shipment.click('check')
+    >>> invoice_sale, no_invoice_sale = shipment.sales
+    >>> invoice_sale.state
+    u'draft'
+    >>> no_invoice_sale.state
+    u'draft'
+    >>> invoice_sale.invoice_method
+    u'order'
+    >>> no_invoice_sale.invoice_method
+    u'manual'
+    >>> sale_line, = invoice_sale.lines
+    >>> sale_line.product == hours_product
+    True
+    >>> sale_line.unit_price == hours_product.template.list_price
+    True
+    >>> sale_line.quantity
+    2.5
+    >>> sale_line, = no_invoice_sale.lines
+    >>> sale_line.product == hours_product
+    True
+    >>> sale_line.unit_price == hours_product.template.list_price
+    True
+    >>> sale_line.quantity
+    1.0

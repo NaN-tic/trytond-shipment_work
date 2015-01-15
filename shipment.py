@@ -28,6 +28,14 @@ class Configuration:
                 ], required=True),
         'get_company_config', 'set_company_config')
 
+    shipment_work_hours_product = fields.Function(fields.Many2One(
+            'product.product', 'Shipment Work Hours Product',
+            help='The product used to invoice the service hours of a shipment',
+            domain=[
+                ('type', '=', 'service'),
+                ]),
+        'get_company_config', 'set_company_config')
+
     @classmethod
     def get_company_config(self, configs, names):
         pool = Pool()
@@ -76,8 +84,14 @@ class ConfigurationCompany(ModelSQL):
     shipment_work_sequence = fields.Many2One('ir.sequence',
         'Shipment Work Sequence',
         domain=[
-            ('company', '=', Eval('company', -1)),
+            ('company', 'in', [Eval('company', -1), None]),
             ('code', '=', 'shipment.work'),
+            ],
+        depends=['company'])
+    shipment_work_hours_product = fields.Many2One('product.product',
+        'Shipment Work Hours Product',
+        domain=[
+            ('type', '=', 'service'),
             ])
 
 
@@ -115,7 +129,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     _rec_name = 'work_name'
 
     company = fields.Many2One('company.company', 'Company', required=True,
-        select=True)
+        select=True, states={
+            'readonly': Eval('state') != 'draft',
+            },
+        depends=['state'])
     work_name = fields.Function(fields.Char('Code', required=True,
             readonly=True),
         'get_work_name', searcher='search_work_name', setter='set_work_name')
@@ -125,7 +142,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         states={
             'readonly': Eval('state') != 'draft',
             },
-        depends=['state'])
+        depends=['state', 'company'])
     party = fields.Many2One('party.party', 'Party', required=True, select=True,
         states={
             'readonly': Eval('state') != 'draft',
@@ -159,7 +176,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'required': Eval('state').in_(['planned', 'done', 'checked']),
             },
         domain=[('company', '=', Eval('company'))],
-        depends=['state'])
+        depends=['state', 'company'])
     products = fields.One2Many('shipment.work.product', 'shipment', 'Products',
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
@@ -177,7 +194,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
-        depends=['work', 'state', 'company'])
+        context={
+            'invoice_method': Eval('timesheet_invoice_method'),
+            },
+        depends=['work', 'state', 'company', 'timesheet_invoice_method'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -192,8 +212,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     payment_term = fields.Many2One('account.invoice.payment_term',
         'Payment Term',
         states={
-            'required': (Eval('state').in_(['done', 'checked']) &
-                Bool(Eval('products', []))),
+            'required': (Eval('state').in_(['checked']) &
+                (Bool(Eval('products', [])) | Bool(Eval('total_hours')))),
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
         depends=['state'])
@@ -219,9 +239,16 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('invoice', 'Invoice'),
             ('no_invoice', 'No Invoice'),
             ], 'Invoice method',
-            states={
-                'readonly': Eval('state').in_(['checked', 'cancel']),
-            }, required=True)
+        states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+        }, required=True)
+    timesheet_invoice_method = fields.Selection([
+            ('invoice', 'Invoice'),
+            ('no_invoice', 'No Invoice'),
+            ], 'Timesheet Invoice method',
+        states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+        }, required=True)
     customer_location = fields.Function(fields.Many2One('stock.location',
             'Customer Location'), 'on_change_with_customer_location')
     warehouse_output = fields.Function(fields.Many2One('stock.location',
@@ -251,6 +278,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 'missing_shipment_sequence': ('There is no shipment work '
                     'sequence defined. Please define one in stock '
                     'configuration.'),
+                'no_shipment_work_hours_product': ('There is no product '
+                    'defined to invoice the timesheet lines. Please define one'
+                    ' in stock configuration.'),
+
                 })
         cls._transitions |= set((
                 ('draft', 'pending'),
@@ -301,6 +332,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         return 'invoice'
 
     @staticmethod
+    def default_timesheet_invoice_method():
+        return 'invoice'
+
+    @staticmethod
     def default_company():
         return Transaction().context.get('company')
 
@@ -322,8 +357,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def get_sales(self, name):
         pool = Pool()
         Line = pool.get('sale.line')
-        lines = Line.search([
-                ('shipment_work_product', 'in', self.products),
+        lines = Line.search(['OR',
+                [('shipment_work_product', 'in', self.products)],
+                [('shipment_work', '=', self.id)],
                 ])
         return list(set([l.sale.id for l in lines]))
 
@@ -339,23 +375,29 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 })
 
     @classmethod
-    def get_total_hours(cls, works, name):
+    def _get_hours_query(cls, work_ids):
+        'Returns the query to compute hours for works_ids'
         pool = Pool()
         Line = pool.get('timesheet.line')
         Relation = pool.get('shipment.work-timesheet.work')
         relation = Relation.__table__()
         line = Line.__table__()
+        red_sql = reduce_ids(relation.shipment, work_ids)
+        return relation.join(line,
+                condition=(relation.work == line.work)
+                ).select(relation.shipment, Sum(line.hours),
+                where=red_sql,
+                group_by=relation.shipment), line
+
+    @classmethod
+    def get_total_hours(cls, works, name):
         cursor = Transaction().cursor
 
         work_ids = [w.id for w in works]
         hours = dict.fromkeys(work_ids, 0)
         for sub_ids in grouped_slice(work_ids):
-            red_sql = reduce_ids(relation.shipment, sub_ids)
-            cursor.execute(*relation.join(line,
-                    condition=(relation.work == line.work)
-                    ).select(relation.shipment, Sum(line.hours),
-                    where=red_sql,
-                    group_by=relation.shipment))
+            query, _ = cls._get_hours_query(sub_ids)
+            cursor.execute(*query)
             hours.update(dict(cursor.fetchall()))
         return hours
 
@@ -456,6 +498,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                     line = product.get_sale_line(sale, invoice_method)
                     if line:
                         lines.append(line)
+                lines += shipment.get_timesheet_sale_lines(invoice_method)
                 if not lines:
                     continue
                 sale.lines = lines
@@ -513,11 +556,45 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         shipment.state = 'draft'
         return shipment
 
+    def get_timesheet_sale_lines(self, invoice_method):
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+        Config = pool.get('stock.configuration')
+        cursor = Transaction().cursor
+        lines = []
+
+        query, table = self._get_hours_query([self.id])
+        query.where &= table.invoice_method == invoice_method
+        cursor.execute(*query)
+        hours_to_invoice = dict(cursor.fetchall()).get(self.id)
+        if not hours_to_invoice:
+            return lines
+
+        config = Config(1)
+        if not config.shipment_work_hours_product:
+            self.raise_user_error('no_shipment_work_hours_product')
+        sale_line = SaleLine()
+        sale_line.shipment_work = self
+        sale_line.quantity = hours_to_invoice
+        sale_line.product = config.shipment_work_hours_product
+        for key, value in sale_line.on_change_product().iteritems():
+            setattr(sale_line, key, value)
+        sale_line.shipment_work = self
+        return [sale_line]
+
 
 class TimesheetLine:
     __name__ = 'timesheet.line'
 
     shipment = fields.Many2One('shipment.work', 'Shipment Work')
+    invoice_method = fields.Selection([
+            ('invoice', 'Invoice'),
+            ('no_invoice', 'No Invoice'),
+            ], 'Invoice method', required=True)
+
+    @staticmethod
+    def default_invoice_method():
+        return Transaction().context.get('invoice_method', 'invoice')
 
 
 class ShipmentWorkProduct(ModelSQL, ModelView):
@@ -593,6 +670,8 @@ class SaleLine:
     __name__ = 'sale.line'
     shipment_work_product = fields.Many2One('shipment.work.product',
         'Shipment Work Product')
+    shipment_work = fields.Many2One('shipment.work',
+        'Shipment Work')
 
 
 class StockMove:

@@ -16,11 +16,23 @@ msgstr "El albarán de trabajo \"%s\" debe ser cancelado antes de eliminar-lo."
 
 msgctxt "error:shipment.work:"
 msgid ""
+"There is no product defined to invoice the timesheet lines. Please define "
+"one in stock configuration."
+msgstr ""
+"No se ha definido ningún producto para facturar las horas del parte de "
+"trabajo. Por favor, defina uno en la configuración de logística."
+
+msgctxt "error:shipment.work:"
+msgid ""
 "There is no shipment work sequence defined. Please define one in stock "
 "configuration."
 msgstr ""
 "No se ha definido ninguna secuencia para los albaranes de trabajo. Por "
 "favor, defina una en la configuración de existencias."
+
+msgctxt "field:sale.line,shipment_work:"
+msgid "Shipment Work"
+msgstr "Envío"
 
 msgctxt "field:sale.line,shipment_work_product:"
 msgid "Shipment Work Product"
@@ -97,6 +109,10 @@ msgstr "Estado"
 msgctxt "field:shipment.work,stock_moves:"
 msgid "Stock Moves"
 msgstr "Movimientos de existencias"
+
+msgctxt "field:shipment.work,timesheet_invoice_method:"
+msgid "Timesheet Invoice method"
+msgstr "Metodo de facturación parte de trabajo"
 
 msgctxt "field:shipment.work,timesheet_lines:"
 msgid "Timesheet Lines"
@@ -254,6 +270,10 @@ msgctxt "field:shipment.work.product,write_uid:"
 msgid "Write User"
 msgstr "Usuario modificación"
 
+msgctxt "field:stock.configuration,shipment_work_hours_product:"
+msgid "Shipment Work Hours Product"
+msgstr "Producto horas albaran de trabajo"
+
 msgctxt "field:stock.configuration,shipment_work_sequence:"
 msgid "Shipment Work Sequence"
 msgstr "Secuencia albaranes de trabajo"
@@ -278,6 +298,10 @@ msgctxt "field:stock.configuration.company,rec_name:"
 msgid "Name"
 msgstr "Nombre"
 
+msgctxt "field:stock.configuration.company,shipment_work_hours_product:"
+msgid "Shipment Work Hours Product"
+msgstr "Producto horas albaran de trabajo"
+
 msgctxt "field:stock.configuration.company,shipment_work_sequence:"
 msgid "Shipment Work Sequence"
 msgstr "Secuencia albaranes de trabajo"
@@ -294,9 +318,23 @@ msgctxt "field:stock.move,work_shipment:"
 msgid "Shipment Work"
 msgstr "Albaranes de trabajo"
 
+msgctxt "field:timesheet.line,invoice_method:"
+msgid "Invoice method"
+msgstr "Metodo facturación"
+
 msgctxt "field:timesheet.line,shipment:"
 msgid "Shipment Work"
 msgstr "Albarán de trabajo"
+
+msgctxt "help:stock.configuration,shipment_work_hours_product:"
+msgid "The product used to invoice the service hours of a shipment"
+msgstr ""
+"El producto utilizado para facturar las horas del servicio de los albaranes "
+"de trabajo"
+
+msgctxt "model:ir.action,name:act_sales_form"
+msgid "Sales"
+msgstr "Ventas"
 
 msgctxt "model:ir.action,name:act_shipment_work"
 msgid "Shipment Work"
@@ -405,11 +443,27 @@ msgctxt "selection:shipment.work,state:"
 msgid "Planned"
 msgstr "Planificado"
 
+msgctxt "selection:shipment.work,timesheet_invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work,timesheet_invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
 msgctxt "selection:shipment.work.product,invoice_method:"
 msgid "Invoice"
 msgstr "Facturar"
 
 msgctxt "selection:shipment.work.product,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
+msgctxt "selection:timesheet.line,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:timesheet.line,invoice_method:"
 msgid "No Invoice"
 msgstr "No facturar"
 

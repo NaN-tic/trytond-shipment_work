@@ -21,8 +21,6 @@
     <label name="total_hours"/>
     <field name="total_hours" widget="float_time"
         float_time="company_work_time"/>
-    <label name="invoice_method"/>
-    <field name="invoice_method"/>
     <notebook>
         <page id="general" string="General" col="1">
             <separator name="work_description"/>
@@ -34,6 +32,10 @@
             <field name="employees"/>
         </page>
         <page id="costs" string="Costs">
+            <label name="invoice_method"/>
+            <field name="invoice_method"/>
+            <label name="timesheet_invoice_method"/>
+            <field name="timesheet_invoice_method"/>
             <label name="warehouse"/>
             <field name="warehouse"/>
             <label name="payment_term"/>

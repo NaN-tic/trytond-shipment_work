@@ -1,3 +1,5 @@
+* Only allow to modify invoice relative fields to Shipment Work Administration users
+* Allow to invoice shipment hours
 * Fix copy defintion and allow to delete shipments with lines
 * Allow to specify multiple employees per shipment work
 * Add total_hours field
