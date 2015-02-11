@@ -1,3 +1,6 @@
+* Ensure that not timesheet lines are created until work exists
+* Enforce that shipment hours product is salable
+* Add default values for payment term and for warehouse
 * Only allow to modify invoice relative fields to Shipment Work Administration users
 * Allow to invoice shipment hours
 * Fix copy defintion and allow to delete shipments with lines

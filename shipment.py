@@ -33,6 +33,7 @@ class Configuration:
             help='The product used to invoice the service hours of a shipment',
             domain=[
                 ('type', '=', 'service'),
+                ('salable', '=', True),
                 ]),
         'get_company_config', 'set_company_config')
 
@@ -192,7 +193,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('company', '=', Eval('company')),
             ],
         states={
-            'readonly': Eval('state').in_(['checked', 'cancel']),
+            'readonly': ~Bool(Eval('work')) | Eval('state').in_(
+                ['checked', 'cancel']),
             },
         context={
             'invoice_method': Eval('timesheet_invoice_method'),
@@ -339,6 +341,20 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def default_company():
         return Transaction().context.get('company')
 
+    @classmethod
+    def default_payment_term(cls):
+        PaymentTerm = Pool().get('account.invoice.payment_term')
+        payment_terms = PaymentTerm.search(cls.payment_term.domain)
+        if len(payment_terms) == 1:
+            return payment_terms[0].id
+
+    @classmethod
+    def default_warehouse(cls):
+        Location = Pool().get('stock.location')
+        locations = Location.search(cls.warehouse.domain)
+        if len(locations) == 1:
+            return locations[0].id
+
     @fields.depends('party')
     def on_change_with_customer_location(self, name=None):
         if self.party:
@@ -348,6 +364,20 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def on_change_with_warehouse_output(self, name=None):
         if self.warehouse:
             return self.warehouse.output_location.id
+
+    @fields.depends('party', 'payment_term')
+    def on_change_party(self):
+        changes = {}
+        payment_term = None
+        if self.party:
+            if self.party.customer_payment_term:
+                payment_term = self.party.customer_payment_term
+        if payment_term:
+            changes['payment_term'] = payment_term.id
+            changes['payment_term.rec_name'] = payment_term.rec_name
+        else:
+            changes['payment_term'] = self.default_payment_term()
+        return changes
 
     def get_work_name(self, name):
         if not self.work:
