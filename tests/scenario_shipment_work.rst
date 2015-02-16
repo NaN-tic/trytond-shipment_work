@@ -296,15 +296,13 @@ Create a shipment work to invoice its hours::
     >>> shipment.total_hours
     3.5
     >>> shipment.click('check')
-    >>> invoice_sale, no_invoice_sale = shipment.sales
+    >>> invoice_sale, = shipment.sales
     >>> invoice_sale.state
     u'draft'
     >>> no_invoice_sale.state
     u'draft'
     >>> invoice_sale.invoice_method
     u'order'
-    >>> no_invoice_sale.invoice_method
-    u'manual'
     >>> sale_line, = invoice_sale.lines
     >>> sale_line.product == hours_product
     True
@@ -312,10 +310,3 @@ Create a shipment work to invoice its hours::
     True
     >>> sale_line.quantity
     2.5
-    >>> sale_line, = no_invoice_sale.lines
-    >>> sale_line.product == hours_product
-    True
-    >>> sale_line.unit_price == hours_product.template.list_price
-    True
-    >>> sale_line.quantity
-    1.0

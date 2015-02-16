@@ -592,6 +592,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         Config = pool.get('stock.configuration')
         cursor = Transaction().cursor
         lines = []
+        if invoice_method == 'no_invoice':
+            return lines
 
         query, table = self._get_hours_query([self.id])
         query.where &= table.invoice_method == invoice_method
