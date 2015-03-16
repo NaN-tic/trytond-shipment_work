@@ -152,11 +152,11 @@ msgstr "Usuari modificació"
 
 msgctxt "field:shipment.work-company.employee,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:shipment.work-company.employee,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:shipment.work-company.employee,employee:"
 msgid "Employee"
@@ -164,7 +164,7 @@ msgstr "Empleat"
 
 msgctxt "field:shipment.work-company.employee,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-company.employee,rec_name:"
 msgid "Name"
@@ -228,7 +228,7 @@ msgstr "Descripció"
 
 msgctxt "field:shipment.work.product,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work.product,invoice_method:"
 msgid "Invoice method"
@@ -284,15 +284,15 @@ msgstr "Empresa"
 
 msgctxt "field:stock.configuration.company,create_date:"
 msgid "Create Date"
-msgstr "Data de creació"
+msgstr "Data creació"
 
 msgctxt "field:stock.configuration.company,create_uid:"
 msgid "Create User"
-msgstr "Usuari de creació"
+msgstr "Usuari creació"
 
 msgctxt "field:stock.configuration.company,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:stock.configuration.company,rec_name:"
 msgid "Name"
@@ -308,7 +308,7 @@ msgstr "Seqüencia albarans de treball"
 
 msgctxt "field:stock.configuration.company,write_date:"
 msgid "Write Date"
-msgstr "Data modificación"
+msgstr "Data modificació"
 
 msgctxt "field:stock.configuration.company,write_uid:"
 msgid "Write User"

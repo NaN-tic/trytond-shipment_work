@@ -4,11 +4,11 @@ msgstr "Content-Type: text/plain; charset=utf-8\n"
 
 msgctxt "error:shipment.work-timesheet.work:"
 msgid "The shipment work must be unique."
-msgstr "El albarán de trebajo debe ser único."
+msgstr "El albarán de trabajo debe ser único."
 
 msgctxt "error:shipment.work-timesheet.work:"
 msgid "The work must be unique."
-msgstr "El trebajo debe ser único."
+msgstr "El trabajo debe ser único."
 
 msgctxt "error:shipment.work:"
 msgid "Shipment Work \"%s\" must be cancelled before deletion."
@@ -164,7 +164,7 @@ msgstr "Empleado"
 
 msgctxt "field:shipment.work-company.employee,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work-company.employee,rec_name:"
 msgid "Name"
@@ -228,7 +228,7 @@ msgstr "Descripción"
 
 msgctxt "field:shipment.work.product,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:shipment.work.product,invoice_method:"
 msgid "Invoice method"
@@ -284,15 +284,15 @@ msgstr "Empresa"
 
 msgctxt "field:stock.configuration.company,create_date:"
 msgid "Create Date"
-msgstr "Fecha de creación"
+msgstr "Fecha creación"
 
 msgctxt "field:stock.configuration.company,create_uid:"
 msgid "Create User"
-msgstr "Usuario de creación"
+msgstr "Usuario creación"
 
 msgctxt "field:stock.configuration.company,id:"
 msgid "ID"
-msgstr "Identificador"
+msgstr "ID"
 
 msgctxt "field:stock.configuration.company,rec_name:"
 msgid "Name"
@@ -346,7 +346,7 @@ msgstr "Albarán de trabajo"
 
 msgctxt "model:ir.action,name:act_shipment_work_product"
 msgid "Shipment Product"
-msgstr "Producto Albarán"
+msgstr "Producto albarán"
 
 msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
 msgid "All"
