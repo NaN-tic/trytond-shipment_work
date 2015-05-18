@@ -576,7 +576,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             return
         shipment = ShipmentOut()
         shipment.company = self.work.company
-        shipment.warehoues = self.warehouse
+        shipment.warehouse = self.warehouse
         shipment.customer = self.party
         shipment.planned_date = self.planned_date
         shipment.effective_date = self.done_date
