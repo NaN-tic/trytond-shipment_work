@@ -467,6 +467,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         defaults.setdefault('work_name')
         defaults.setdefault('timesheet_lines', [])
         defaults.setdefault('stock_moves', [])
+        defaults.setdefault('done_description')
         new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
         return new_shipments
 
