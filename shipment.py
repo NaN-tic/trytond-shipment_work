@@ -214,8 +214,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     payment_term = fields.Many2One('account.invoice.payment_term',
         'Payment Term',
         states={
-            'required': (Eval('state').in_(['checked']) &
-                (Bool(Eval('products', [])) | Bool(Eval('total_hours')))),
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
         depends=['state'])
@@ -560,6 +558,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale.currency = self.work.company.currency
         sale.warehouse = self.warehouse
         sale.payment_term = self.payment_term
+        if not sale.payment_term:
+            sale.payment_term = self.party.customer_payment_term
         sale.party = self.party
         sale.sale_date = None
         sale.invoice_address = self.party.address_get(type='invoice')
