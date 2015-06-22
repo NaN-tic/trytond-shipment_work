@@ -168,6 +168,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     done_description = fields.Text('Done Description',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            'required': Eval('state').in_(['done', 'checked']),
             },
         depends=['state'])
     employees = fields.Many2Many('shipment.work-company.employee',
