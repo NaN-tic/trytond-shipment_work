@@ -445,7 +445,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             if not values.get('work'):
                 if not config.shipment_work_sequence:
                     cls.raise_user_error('missing_shipment_sequence')
-                code = Sequence.get_id(config.shipment_work_sequence.id)
+                code = values.get('work_name')
+                if not code:
+                    code = Sequence.get_id(config.shipment_work_sequence.id)
+                # We should clear it to avoid calling the setter method
+                if 'work_name' in values:
+                    del values['work_name']
                 to_create.append({
                         'name': code,
                         })
