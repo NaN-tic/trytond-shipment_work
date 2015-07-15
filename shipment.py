@@ -567,7 +567,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if not sale.payment_term:
             sale.payment_term = self.party.customer_payment_term
         sale.party = self.party
-        sale.sale_date = None
+        sale.sale_date = self.done_date
         sale.invoice_address = self.party.address_get(type='invoice')
         sale.shipment_address = self.party.address_get(type='delivery')
         if invoice_method == 'invoice':
