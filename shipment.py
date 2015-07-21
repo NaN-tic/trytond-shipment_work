@@ -227,7 +227,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('cancel', 'Canceled'),
             ], 'State', readonly=True, select=True)
     sales = fields.Function(fields.One2Many('sale.sale', None,
-            'Sales'), 'get_sales')
+            'Sales'), 'get_sales', searcher='search_sales')
+    sale_lines = fields.One2Many('sale.line', 'shipment_work',
+        'Sale Line', readonly=True)
     planned_hours = fields.Float('Planned Hours', digits=(16, 2),
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
@@ -391,6 +393,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 [('shipment_work', '=', self.id)],
                 ])
         return list(set([l.sale.id for l in lines]))
+
+    @classmethod
+    def search_sales(cls, name, clause):
+        return ['OR',
+            [tuple(('products.sale_lines.sale',)) + tuple(clause[1:])],
+            [tuple(('sale_lines.sale',)) + tuple(clause[1:])],
+            ]
 
     @classmethod
     def search_work_name(cls, name, clause):
