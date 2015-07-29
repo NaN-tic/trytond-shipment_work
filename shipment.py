@@ -706,6 +706,13 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
         sale_line.description = self.description
         if self.product:
             sale_line.product = self.product
+            for key in SaleLine.product.on_change:
+                line = sale_line
+                if '_parent_' in key:
+                    parent, key = key.split('.')
+                    line = getattr(sale_line, parent[8:])
+                if not hasattr(line, key):
+                    setattr(line, key, None)
             for key, value in sale_line.on_change_product().iteritems():
                 setattr(sale_line, key, value)
         else:
