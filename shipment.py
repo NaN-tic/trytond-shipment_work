@@ -168,6 +168,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     done_description = fields.Text('Done Description',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
+            'required': Eval('state').in_(['done', 'checked']),
             },
         depends=['state'])
     employees = fields.Many2Many('shipment.work-company.employee',
@@ -214,8 +215,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     payment_term = fields.Many2One('account.invoice.payment_term',
         'Payment Term',
         states={
-            'required': (Eval('state').in_(['checked']) &
-                (Bool(Eval('products', [])) | Bool(Eval('total_hours')))),
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
         depends=['state'])
@@ -228,7 +227,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('cancel', 'Canceled'),
             ], 'State', readonly=True, select=True)
     sales = fields.Function(fields.One2Many('sale.sale', None,
-            'Sales'), 'get_sales')
+            'Sales'), 'get_sales', searcher='search_sales')
+    sale_lines = fields.One2Many('sale.line', 'shipment_work',
+        'Sale Line', readonly=True)
     planned_hours = fields.Float('Planned Hours', digits=(16, 2),
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
@@ -394,6 +395,13 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         return list(set([l.sale.id for l in lines]))
 
     @classmethod
+    def search_sales(cls, name, clause):
+        return ['OR',
+            [tuple(('products.sale_lines.sale',)) + tuple(clause[1:])],
+            [tuple(('sale_lines.sale',)) + tuple(clause[1:])],
+            ]
+
+    @classmethod
     def search_work_name(cls, name, clause):
         return [('work.name',) + tuple(clause[1:])]
 
@@ -446,7 +454,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             if not values.get('work'):
                 if not config.shipment_work_sequence:
                     cls.raise_user_error('missing_shipment_sequence')
-                code = Sequence.get_id(config.shipment_work_sequence.id)
+                code = values.get('work_name')
+                if not code:
+                    code = Sequence.get_id(config.shipment_work_sequence.id)
+                # We should clear it to avoid calling the setter method
+                if 'work_name' in values:
+                    del values['work_name']
                 to_create.append({
                         'name': code,
                         })
@@ -467,6 +480,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         defaults.setdefault('work_name')
         defaults.setdefault('timesheet_lines', [])
         defaults.setdefault('stock_moves', [])
+        defaults.setdefault('done_description')
         new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
         return new_shipments
 
@@ -559,8 +573,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale.currency = self.work.company.currency
         sale.warehouse = self.warehouse
         sale.payment_term = self.payment_term
+        if not sale.payment_term:
+            sale.payment_term = self.party.customer_payment_term
         sale.party = self.party
-        sale.sale_date = None
+        sale.sale_date = self.done_date
         sale.invoice_address = self.party.address_get(type='invoice')
         sale.shipment_address = self.party.address_get(type='delivery')
         if invoice_method == 'invoice':
@@ -690,6 +706,13 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
         sale_line.description = self.description
         if self.product:
             sale_line.product = self.product
+            for key in SaleLine.product.on_change:
+                line = sale_line
+                if '_parent_' in key:
+                    parent, key = key.split('.')
+                    line = getattr(sale_line, parent[8:])
+                if not hasattr(line, key):
+                    setattr(line, key, None)
             for key, value in sale_line.on_change_product().iteritems():
                 setattr(sale_line, key, value)
         else:

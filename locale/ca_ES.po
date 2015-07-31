@@ -98,6 +98,10 @@ msgctxt "field:shipment.work,rec_name:"
 msgid "Name"
 msgstr "Nom"
 
+msgctxt "field:shipment.work,sale_lines:"
+msgid "Sale Line"
+msgstr "Línia de venta"
+
 msgctxt "field:shipment.work,sales:"
 msgid "Sales"
 msgstr "Vendes"
@@ -348,6 +352,10 @@ msgctxt "model:ir.action,name:act_shipment_work_product"
 msgid "Shipment Product"
 msgstr "Producte albarà"
 
+msgctxt "model:ir.action,name:act_shipment_work_sales"
+msgid "Shipment Works"
+msgstr "Albarans de treball"
+
 msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
 msgid "All"
 msgstr "Tots"
@@ -390,6 +398,10 @@ msgstr "Albarà de treball"
 msgctxt "model:res.group,name:group_shipment_work"
 msgid "Shipment Work"
 msgstr "Albarà de treball"
+
+msgctxt "model:res.group,name:group_shipment_work_admin"
+msgid "Shipment Work Administration"
+msgstr "Administració d'albarans de treball"
 
 msgctxt "model:shipment.work,name:"
 msgid "Shipment Work"
