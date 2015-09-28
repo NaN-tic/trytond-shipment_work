@@ -4,96 +4,14 @@ from sql.aggregate import Sum
 from itertools import izip
 from decimal import Decimal
 
-from trytond.model import Workflow, ModelSQL, ModelView, Model, fields
+from trytond.model import Workflow, ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
 from trytond.tools import grouped_slice, reduce_ids
 
-__all__ = ['Configuration', 'ConfigurationCompany', 'ShipmentWorkWorkRelation',
-    'ShipmentWorkEmployee', 'ShipmentWork', 'TimesheetLine',
-    'ShipmentWorkProduct', 'SaleLine', 'StockMove']
-__metaclass__ = PoolMeta
-
-
-class Configuration:
-    __name__ = 'stock.configuration'
-
-    shipment_work_sequence = fields.Function(fields.Many2One('ir.sequence',
-            'Shipment Work Sequence',
-            domain=[
-                ('company', 'in',
-                    [Eval('context', {}).get('company', -1), None]),
-                ('code', '=', 'shipment.work'),
-                ], required=True),
-        'get_company_config', 'set_company_config')
-
-    shipment_work_hours_product = fields.Function(fields.Many2One(
-            'product.product', 'Shipment Work Hours Product',
-            help='The product used to invoice the service hours of a shipment',
-            domain=[
-                ('type', '=', 'service'),
-                ('salable', '=', True),
-                ]),
-        'get_company_config', 'set_company_config')
-
-    @classmethod
-    def get_company_config(self, configs, names):
-        pool = Pool()
-        CompanyConfig = pool.get('stock.configuration.company')
-
-        company_id = Transaction().context.get('company')
-        company_configs = CompanyConfig.search([
-                ('company', '=', company_id),
-                ])
-
-        res = {}
-        for fname in names:
-            res[fname] = {
-                configs[0].id: None,
-                }
-            if company_configs:
-                val = getattr(company_configs[0], fname)
-                if isinstance(val, Model):
-                    val = val.id
-                res[fname][configs[0].id] = val
-        return res
-
-    @classmethod
-    def set_company_config(self, configs, name, value):
-        pool = Pool()
-        CompanyConfig = pool.get('stock.configuration.company')
-
-        company_id = Transaction().context.get('company')
-        company_configs = CompanyConfig.search([
-                ('company', '=', company_id),
-                ])
-        if company_configs:
-            company_config = company_configs[0]
-        else:
-            company_config = CompanyConfig(company=company_id)
-        setattr(company_config, name, value)
-        company_config.save()
-
-
-class ConfigurationCompany(ModelSQL):
-    'Stock Configuration per Company'
-    __name__ = 'stock.configuration.company'
-
-    company = fields.Many2One('company.company', 'Company', required=True,
-        ondelete='CASCADE', select=True)
-    shipment_work_sequence = fields.Many2One('ir.sequence',
-        'Shipment Work Sequence',
-        domain=[
-            ('company', 'in', [Eval('company', -1), None]),
-            ('code', '=', 'shipment.work'),
-            ],
-        depends=['company'])
-    shipment_work_hours_product = fields.Many2One('product.product',
-        'Shipment Work Hours Product',
-        domain=[
-            ('type', '=', 'service'),
-            ])
+__all__ = ['ShipmentWorkWorkRelation', 'ShipmentWorkEmployee', 'ShipmentWork',
+    'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine', 'StockMove']
 
 
 class ShipmentWorkWorkRelation(ModelSQL):
@@ -271,6 +189,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
         depends=['customer_location', 'warehouse_output', 'state', 'company'])
+    invoice_lines = fields.One2Many('account.invoice.line', 'shipment_work',
+        'Invoice Lines', domain=[
+            ('invoice.company', '=', Eval('company', -1)),
+            ], states={
+            'readonly': Eval('state').in_(['checked', 'cancel']),
+            }, depends=['company'])
 
     @classmethod
     def __setup__(cls):
@@ -355,6 +279,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         locations = Location.search(cls.warehouse.domain)
         if len(locations) == 1:
             return locations[0].id
+
+    def get_rec_name(self, name):
+        res = self.work_name
+        if self.party:
+            res += ' - ' + self.party.rec_name
+        return res
 
     @fields.depends('party')
     def on_change_with_customer_location(self, name=None):
@@ -633,6 +563,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
 class TimesheetLine:
     __name__ = 'timesheet.line'
+    __metaclass__ = PoolMeta
 
     shipment = fields.Many2One('shipment.work', 'Shipment Work')
     invoice_method = fields.Selection([
@@ -723,6 +654,7 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
 
 class SaleLine:
     __name__ = 'sale.line'
+    __metaclass__ = PoolMeta
     shipment_work_product = fields.Many2One('shipment.work.product',
         'Shipment Work Product')
     shipment_work = fields.Many2One('shipment.work',
@@ -731,5 +663,6 @@ class SaleLine:
 
 class StockMove:
     __name__ = 'stock.move'
+    __metaclass__ = PoolMeta
 
     work_shipment = fields.Many2One('shipment.work', 'Shipment Work')

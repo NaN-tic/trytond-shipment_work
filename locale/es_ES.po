@@ -30,6 +30,10 @@ msgstr ""
 "No se ha definido ninguna secuencia para los albaranes de trabajo. Por "
 "favor, defina una en la configuración de existencias."
 
+msgctxt "field:account.invoice.line,shipment_work:"
+msgid "Shipment Work"
+msgstr "Albarán de trabajo"
+
 msgctxt "field:sale.line,shipment_work:"
 msgid "Shipment Work"
 msgstr "Envío"
@@ -69,6 +73,10 @@ msgstr "Empleados"
 msgctxt "field:shipment.work,id:"
 msgid "ID"
 msgstr "ID"
+
+msgctxt "field:shipment.work,invoice_lines:"
+msgid "Invoice Lines"
+msgstr "Líneas de factura"
 
 msgctxt "field:shipment.work,invoice_method:"
 msgid "Invoice method"

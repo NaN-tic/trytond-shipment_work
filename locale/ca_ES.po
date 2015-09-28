@@ -30,6 +30,10 @@ msgstr ""
 "No s'ha definit cap seqüencia pels albarans de treball. Siusplau, "
 "definiu-n'hi una a la configuració de estocs."
 
+msgctxt "field:account.invoice.line,shipment_work:"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
 msgctxt "field:sale.line,shipment_work:"
 msgid "Shipment Work"
 msgstr "Albarans de treball"
@@ -69,6 +73,10 @@ msgstr "Empleats"
 msgctxt "field:shipment.work,id:"
 msgid "ID"
 msgstr "ID"
+
+msgctxt "field:shipment.work,invoice_lines:"
+msgid "Invoice Lines"
+msgstr "Línies de factura"
 
 msgctxt "field:shipment.work,invoice_method:"
 msgid "Invoice method"
