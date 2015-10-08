@@ -13,7 +13,7 @@ from trytond.transaction import Transaction
 from trytond.tools import grouped_slice, reduce_ids
 
 __all__ = ['ShipmentWorkWorkRelation', 'ShipmentWorkEmployee', 'ShipmentWork',
-    'TimesheetLine', 'ShipmentWorkProduct', 'SaleLine', 'StockMove']
+    'TimesheetLine', 'ShipmentWorkProduct', 'Sale', 'SaleLine', 'StockMove']
 
 
 class ShipmentWorkWorkRelation(ModelSQL):
