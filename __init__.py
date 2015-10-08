@@ -15,6 +15,7 @@ def register():
         ShipmentWorkWorkRelation,
         ShipmentWorkEmployee,
         TimesheetLine,
+        Sale,
         SaleLine,
         StockMove,
         InvoiceLine,

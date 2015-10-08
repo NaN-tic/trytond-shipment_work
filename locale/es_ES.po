@@ -42,6 +42,10 @@ msgctxt "field:sale.line,shipment_work_product:"
 msgid "Shipment Work Product"
 msgstr "Producto albarán de trabajo"
 
+msgctxt "field:sale.sale,shipment_works:"
+msgid "Sales"
+msgstr "Ventas"
+
 msgctxt "field:shipment.work,company:"
 msgid "Company"
 msgstr "Empresa"

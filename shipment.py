@@ -1,8 +1,10 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from sql.aggregate import Sum
-from itertools import izip
+from collections import defaultdict
 from decimal import Decimal
+from itertools import izip
+from sql import Null, Union
+from sql.aggregate import Sum
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
@@ -650,6 +652,46 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
             sale_line.unit_price = Decimal('0.0')
         sale_line.shipment_work_product = self
         return sale_line
+
+
+class Sale:
+    __name__ = 'sale.sale'
+    __metaclass__ = PoolMeta
+
+    shipment_works = fields.Function(fields.One2Many('shipment.work', None,
+            'Sales'), 'get_shipment_work', searcher='search_shipment_works')
+
+    @classmethod
+    def get_shipment_work(cls, sales, name):
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+        WorkProduct = pool.get('shipment.work.product')
+        table = SaleLine.__table__()
+        line = SaleLine.__table__()
+        work_product = WorkProduct.__table__()
+        result = defaultdict(list)
+        cursor = Transaction().cursor
+        for sub_ids in grouped_slice([s.id for s in sales]):
+            sub_ids = list(sub_ids)
+            direct = table.select(table.sale,
+                table.shipment_work.as_('shipment'),
+                where=(table.shipment_work != Null) &
+                reduce_ids(table.sale, sub_ids))
+            indirect = line.join(work_product,
+                condition=(work_product.id == line.shipment_work_product)
+                ).select(line.sale, work_product.shipment.as_('shipment'),
+                where=reduce_ids(line.sale, sub_ids))
+            cursor.execute(*Union(direct, indirect))
+            for sale, shipment in cursor.fetchall():
+                result[sale].append(shipment)
+        return result
+
+    @classmethod
+    def search_shipment_works(cls, name, clause):
+        product_clause = [('lines.shipment_work_product.shipment',) +
+            tuple(clause[1:])]
+        direct_clause = [('lines.shipment_work',) + tuple(clause[1:])]
+        return ['OR', product_clause, direct_clause]
 
 
 class SaleLine:
