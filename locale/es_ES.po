@@ -11,6 +11,14 @@ msgid "The work must be unique."
 msgstr "El trabajo debe ser único."
 
 msgctxt "error:shipment.work:"
+msgid ""
+"Can not mark shipment \"%s\" as done because its related sale \"%s\" can not"
+" be canceled."
+msgstr ""
+"El albarán de trabajo \"%s\" no se puede marcar como realizado porqué su "
+"venta relacionada \"%s\" no se puede cancelar."
+
+msgctxt "error:shipment.work:"
 msgid "Shipment Work \"%s\" must be cancelled before deletion."
 msgstr "El albarán de trabajo \"%s\" debe ser cancelado antes de eliminar-lo."
 

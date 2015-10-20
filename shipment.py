@@ -2,7 +2,7 @@
 # copyright notices and license terms.
 from collections import defaultdict
 from decimal import Decimal
-from itertools import izip
+from itertools import izip, chain
 from sql import Null, Union
 from sql.aggregate import Sum
 
@@ -204,6 +204,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         cls._error_messages.update({
                 'delete_cancel': ('Shipment Work "%s" must be cancelled before'
                     ' deletion.'),
+                'sale_not_canceled': ('Can not mark shipment "%s" as done '
+                    'because its related sale "%s" can not be canceled.'),
                 'missing_shipment_sequence': ('There is no shipment work '
                     'sequence defined. Please define one in stock '
                     'configuration.'),
@@ -218,6 +220,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 ('pending', 'planned'),
                 ('planned', 'done'),
                 ('done', 'checked'),
+                ('checked', 'done'),
                 ('draft', 'cancel'),
                 ('pending', 'cancel'),
                 ('planned', 'cancel'),
@@ -238,7 +241,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                     'icon': 'tryton-go-next',
                     },
                 'done': {
-                    'invisible': Eval('state') != 'planned',
+                    'invisible': ~Eval('state').in_(['planned', 'checked']),
                     'icon': 'tryton-ok',
                     },
                 'check': {
@@ -455,6 +458,21 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         cls.write([s for s in shipments if not s.done_date], {
                 'done_date': Date.today(),
                 })
+        sales = list(chain(*[s.sales for s in shipments]))
+        if sales:
+            cls.cancel_sales(sales)
+            for sale in sales:
+                if sale.state != 'cancel':
+                    shipment = sale.shipment_works[0]
+                    cls.raise_user_error('sale_not_canceled',
+                        (shipment.rec_name, sale.rec_name))
+
+    @classmethod
+    def cancel_sales(cls, sales):
+        pool = Pool()
+        Sale = pool.get('sale.sale')
+        Sale.draft(sales)
+        Sale.cancel(sales)
 
     @classmethod
     @ModelView.button
@@ -520,7 +538,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def get_stock_shipment(self):
         pool = Pool()
         ShipmentOut = pool.get('stock.shipment.out')
-        if not self.stock_moves:
+        moves = [m for m in self.stock_moves if m.state != 'done']
+        if not moves:
             return
         shipment = ShipmentOut()
         shipment.company = self.work.company
@@ -530,7 +549,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         shipment.effective_date = self.done_date
         shipment.delivery_address = self.party.address_get(type='delivery')
         shipment.reference = self.work_name
-        shipment.moves = self.stock_moves
+        shipment.moves = moves
         shipment.state = 'draft'
         return shipment
 

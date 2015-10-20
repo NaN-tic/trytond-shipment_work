@@ -310,3 +310,52 @@ Create a shipment work to invoice its hours::
     True
     >>> sale_line.quantity
     2.5
+
+A shipment work can be canceld::
+
+    >>> shipment = Shipment()
+    >>> shipment.work_description = 'Work'
+    >>> shipment.party = customer
+    >>> shipment.timesheet_invoice_method
+    'invoice'
+    >>> shipment.click('pending')
+    >>> shipment.state
+    u'pending'
+    >>> shipment.planned_date = today
+    >>> employee = Employee(employee.id)
+    >>> shipment.employees.append(employee)
+    >>> shipment.click('plan')
+    >>> timesheet_line = shipment.timesheet_lines.new()
+    >>> timesheet_line.hours = 2.5
+    >>> timesheet_line.employee = employee
+    >>> timesheet_line.work = shipment.work
+    >>> timesheet_line.invoice_method
+    u'invoice'
+    >>> shipment.done_description = 'Done'
+    >>> shipment.payment_term = payment_term
+    >>> shipment.click('done')
+    >>> shipment.click('check')
+    >>> invoice_sale, = shipment.sales
+    >>> invoice_sale.state
+    u'draft'
+    >>> shipment.click('done')
+    >>> shipment.state
+    u'done'
+    >>> sale, = shipment.sales
+    >>> sale.state
+    u'cancel'
+    >>> shipment.click('check')
+    >>> cancel_sale, draft_sale = sorted(shipment.sales, key=lambda a: a.state)
+    >>> cancel_sale.state
+    u'cancel'
+    >>> draft_sale.state
+    u'draft'
+    >>> draft_sale.click('quote')
+    >>> draft_sale.click('confirm')
+    >>> draft_sale.click('process')
+    >>> shipment.click('done')
+    Traceback (most recent call last):
+        ...
+    UserError: ('UserError', (u'Can not mark shipment "3 - Customer" as done because its related sale "1" can not be canceled.', ''))
+    >>> shipment.state
+    u'checked'
