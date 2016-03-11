@@ -215,54 +215,65 @@ Create a shipment work with two lines::
     >>> shipment.click('plan')
     >>> shipment.state
     u'planned'
-    >>> shipment.done_description = 'Done'
-    >>> shipment.click('done')
-    >>> shipment.state
-    u'done'
     >>> line = shipment.products.new()
-    >>> line.description = 'Unkown product'
-    >>> line.quantity = 1.0
-    >>> line.unit = unit
+    >>> line.product = product
     >>> line.quantity = 1.0
     >>> line.invoice_method
     u'invoice'
     >>> line = shipment.products.new()
-    >>> line.product = product
-    >>> line.quantity = 1.0
+    >>> line.description = 'Unkown product'
     >>> line.invoice_method = 'no_invoice'
+    >>> line.quantity = 1.0
+    >>> line.unit = unit
     >>> warehouse, = Location.find([('type', '=', 'warehouse')])
     >>> shipment.warehouse = warehouse
     >>> shipment.payment_term = payment_term
     >>> shipment.save()
 
-When the shipment work is checked a sale is created::
+When the shipment work is done a sale is created::
+
+    >>> shipment.done_description = 'Done'
+    >>> shipment.click('done')
+    >>> shipment.state
+    u'done'
+    >>> move, = shipment.stock_moves
+    >>> move.state
+    u'draft'
+    >>> move.product == product
+    True
+    >>> move.from_location == warehouse.storage_location
+    True
+    >>> sale,  = shipment.sales
+    >>> sale.state
+    u'draft'
+    >>> sale.invoice_method
+    u'order'
+    >>> sale_line, =  sale.lines
+    >>> sale_line.product == product
+    True
+    >>> sale_line.quantity
+    1.0
+    >>> sale_line.unit == unit
+    True
+
+When checking the shipment the sale is confirmed::
 
     >>> shipment.click('check')
     >>> shipment.state
     u'checked'
-    >>> invoice_sale, no_invoice_sale = shipment.sales
-    >>> invoice_sale.state
-    u'draft'
-    >>> no_invoice_sale.state
-    u'draft'
-    >>> invoice_sale.invoice_method
-    u'order'
-    >>> no_invoice_sale.invoice_method
-    u'manual'
-    >>> description_line, =  invoice_sale.lines
-    >>> description_line.product
-    >>> description_line.description
-    u'Unkown product'
-    >>> description_line.quantity
+    >>> move, = shipment.stock_moves
+    >>> move.state
+    u'done'
+    >>> sale,  = shipment.sales
+    >>> sale.state
+    u'processing'
+    >>> invoice, = sale.invoices
+    >>> invoice_line, =  invoice.lines
+    >>> invoice_line.product == product
+    True
+    >>> invoice_line.quantity
     1.0
-    >>> description_line.unit == unit
-    True
-    >>> description_line.unit_price
-    Decimal('0.0')
-    >>> product_line, = no_invoice_sale.lines
-    >>> product_line.product == product
-    True
-    >>> product_line.unit_price == product.template.list_price
+    >>> invoice_line.unit == unit
     True
 
 Create a shipment work to invoice its hours::
@@ -298,9 +309,7 @@ Create a shipment work to invoice its hours::
     >>> shipment.click('check')
     >>> invoice_sale, = shipment.sales
     >>> invoice_sale.state
-    u'draft'
-    >>> no_invoice_sale.state
-    u'draft'
+    u'processing'
     >>> invoice_sale.invoice_method
     u'order'
     >>> sale_line, = invoice_sale.lines
@@ -334,28 +343,34 @@ A shipment work can be canceld::
     >>> shipment.done_description = 'Done'
     >>> shipment.payment_term = payment_term
     >>> shipment.click('done')
-    >>> shipment.click('check')
-    >>> invoice_sale, = shipment.sales
-    >>> invoice_sale.state
+    >>> sale, = shipment.sales
+    >>> sale.state
     u'draft'
-    >>> shipment.click('done')
+    >>> shipment.click('cancel')
     >>> shipment.state
-    u'done'
+    u'cancel'
     >>> sale, = shipment.sales
     >>> sale.state
     u'cancel'
-    >>> shipment.click('check')
+    >>> shipment.click('draft')
+    >>> shipment.click('pending')
+    >>> shipment.click('plan')
+    >>> shipment.click('done')
     >>> cancel_sale, draft_sale = sorted(shipment.sales, key=lambda a: a.state)
     >>> cancel_sale.state
     u'cancel'
     >>> draft_sale.state
     u'draft'
+
+We can not cancel a shipment work if it's sale is in process state::
+
     >>> draft_sale.click('quote')
     >>> draft_sale.click('confirm')
     >>> draft_sale.click('process')
-    >>> shipment.click('done')
+    >>> shipment.click('cancel')
     Traceback (most recent call last):
         ...
-    UserError: ('UserError', (u'Can not mark shipment "3 - Customer" as done because its related sale "1" can not be canceled.', ''))
+    UserError: ('UserError', (u'Can not mark shipment "3 - Customer" as done because its related sale "3" can not be canceled.', ''))
+    >>> shipment.reload()
     >>> shipment.state
-    u'checked'
+    u'done'
