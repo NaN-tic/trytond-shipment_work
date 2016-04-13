@@ -6,11 +6,14 @@ from itertools import izip, chain
 from sql import Null, Union
 from sql.aggregate import Sum
 
-from trytond.model import Workflow, ModelSQL, ModelView, fields
+from trytond.model import Workflow, ModelSQL, ModelView, fields, Unique
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
 from trytond.tools import grouped_slice, reduce_ids
+import datetime
+from trytond import backend
+
 
 __all__ = ['ShipmentWorkWorkRelation', 'ShipmentWorkEmployee', 'ShipmentWork',
     'TimesheetLine', 'ShipmentWorkProduct', 'Sale', 'SaleLine', 'StockMove']
@@ -27,10 +30,11 @@ class ShipmentWorkWorkRelation(ModelSQL):
     @classmethod
     def __setup__(cls):
         super(ShipmentWorkWorkRelation, cls).__setup__()
+        table = cls.__table__()
         cls._sql_constraints += [
-            ('shipment_unique', 'UNIQUE(shipment)',
+            ('shipment_unique', Unique(table, table.shipment),
                 'The shipment work must be unique.'),
-            ('work_unique', 'UNIQUE(work)',
+            ('work_unique', Unique(table, table.work),
                 'The work must be unique.'),
             ]
 
@@ -150,13 +154,14 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'Sales'), 'get_sales', searcher='search_sales')
     sale_lines = fields.One2Many('sale.line', 'shipment_work',
         'Sale Line', readonly=True)
-    planned_hours = fields.Float('Planned Hours', digits=(16, 2),
+    planned_duration = fields.TimeDelta('Planned duration',
+        'company_work_time',
         states={
             'readonly': Eval('state').in_(['done', 'checked', 'cancel']),
         },
         depends=['state'])
-    total_hours = fields.Function(fields.Float('Total Hours',
-            digits=(16, 2)),
+    total_hours = fields.Function(fields.TimeDelta('Total Hours',
+        'company_work_time'),
         'get_total_hours')
     invoice_method = fields.Selection([
             ('invoice', 'Invoice'),
@@ -255,6 +260,29 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                     },
                 })
 
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        cursor = Transaction().connection.cursor()
+        table = TableHandler(cls, module_name)
+        sql_table = cls.__table__()
+
+        # Migration from 3.4: change hours into timedelta duration
+        if table.column_exist('planned_hours'):
+            cursor.execute(*sql_table.select(
+                    sql_table.id, sql_table.planned_hours))
+            for id_, hours in cursor.fetchall():
+                if not hours:
+                    continue
+                duration = datetime.timedelta(hours=hours)
+                cursor.execute(*sql_table.update(
+                        [sql_table.planned_duration],
+                        [duration],
+                        where=sql_table.id == id_))
+            table.drop_column('planned_hours')
+
+        super(ShipmentWork, cls).__register__(module_name)
+
     @staticmethod
     def default_state():
         return 'draft'
@@ -303,17 +331,15 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @fields.depends('party', 'payment_term')
     def on_change_party(self):
-        changes = {}
         payment_term = None
         if self.party:
             if self.party.customer_payment_term:
                 payment_term = self.party.customer_payment_term
         if payment_term:
-            changes['payment_term'] = payment_term.id
-            changes['payment_term.rec_name'] = payment_term.rec_name
+            self.payment_term = payment_term
+            self.payment_term.rec_name = payment_term.rec_name
         else:
-            changes['payment_term'] = self.default_payment_term()
-        return changes
+            self.payment_term = self.default_payment_term()
 
     def get_work_name(self, name):
         if not self.work:
@@ -358,16 +384,16 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         red_sql = reduce_ids(relation.shipment, work_ids)
         return relation.join(line,
                 condition=(relation.work == line.work)
-                ).select(relation.shipment, Sum(line.hours),
+                ).select(relation.shipment, Sum(line.duration),
                 where=red_sql,
                 group_by=relation.shipment), line
 
     @classmethod
     def get_total_hours(cls, works, name):
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
 
         work_ids = [w.id for w in works]
-        hours = dict.fromkeys(work_ids, 0)
+        hours = dict.fromkeys(work_ids, datetime.timedelta())
         for sub_ids in grouped_slice(work_ids):
             query, _ = cls._get_hours_query(sub_ids)
             cursor.execute(*query)
@@ -557,7 +583,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         pool = Pool()
         SaleLine = pool.get('sale.line')
         Config = pool.get('stock.configuration')
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
         lines = []
         if invoice_method == 'no_invoice':
             return lines
@@ -689,7 +715,7 @@ class Sale:
         line = SaleLine.__table__()
         work_product = WorkProduct.__table__()
         result = defaultdict(list)
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
         for sub_ids in grouped_slice([s.id for s in sales]):
             sub_ids = list(sub_ids)
             direct = table.select(table.sale,

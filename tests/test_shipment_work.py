@@ -4,23 +4,14 @@
 import unittest
 import doctest
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import test_view, test_depends
-from trytond.tests.test_tryton import doctest_setup, doctest_teardown
+from trytond.tests.test_tryton import ModuleTestCase
+from trytond.tests.test_tryton import (doctest_setup, doctest_teardown,
+    doctest_checker)
 
 
-class TestCase(unittest.TestCase):
-    'Test module'
-
-    def setUp(self):
-        trytond.tests.test_tryton.install_module('shipment_work')
-
-    def test0005views(self):
-        'Test views'
-        test_view('shipment_work')
-
-    def test0006depends(self):
-        'Test depends'
-        test_depends()
+class TestCase(ModuleTestCase):
+    'Test Shipment Work'
+    module = 'shipment.work'
 
 
 def suite():
@@ -28,5 +19,6 @@ def suite():
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     suite.addTests(doctest.DocFileSuite('scenario_shipment_work.rst',
             setUp=doctest_setup, tearDown=doctest_teardown, encoding='utf-8',
-            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
+            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE,
+            checker=doctest_checker))
     return suite

@@ -14,6 +14,7 @@ class InvoiceLine:
 
     shipment_work = fields.Many2One('shipment.work', 'Shipment Work',
         states={
-            'invisible': ~Eval('_parent_invoice', {}).get('type', Eval('invoice_type')).in_(['in_invoice', 'in_credit_note']),
+            'invisible': ~Eval('_parent_invoice', {}).get('type',
+                Eval('invoice_type')).in_(['in_invoice', 'in_credit_note']),
             },
         depends=[])

@@ -73,25 +73,25 @@
         <record model="ir.action.act_window.domain" id="act_shipment_work_domain_draft">
             <field name="name">Draft</field>
             <field name="sequence" eval="10"/>
-            <field name="domain">[('state', '=', 'draft')]</field>
+            <field name="domain" eval="[('state', '=', 'draft')]" pyson="1"/>
             <field name="act_window" ref="act_shipment_work"/>
         </record>
         <record model="ir.action.act_window.domain" id="act_shipment_work_domain_pending">
             <field name="name">Pending</field>
             <field name="sequence" eval="20"/>
-            <field name="domain">[('state', '=', 'pending')]</field>
+            <field name="domain" eval="[('state', '=', 'pending')]" pyson="1"/>
             <field name="act_window" ref="act_shipment_work"/>
         </record>
         <record model="ir.action.act_window.domain" id="act_shipment_work_domain_planned">
             <field name="name">Planned</field>
             <field name="sequence" eval="30"/>
-            <field name="domain">[('state', '=', 'planned')]</field>
+            <field name="domain" eval="[('state', '=', 'planned')]" pyson="1" />
             <field name="act_window" ref="act_shipment_work"/>
         </record>
         <record model="ir.action.act_window.domain" id="act_shipment_work_domain_done">
             <field name="name">Done</field>
             <field name="sequence" eval="40"/>
-            <field name="domain">[('state', '=', 'done')]</field>
+            <field name="domain" eval="[('state', '=', 'done')]" pyson="1"/>
             <field name="act_window" ref="act_shipment_work"/>
         </record>
         <record model="ir.action.act_window.domain" id="act_shipment_work_domain_all">
@@ -102,7 +102,7 @@
         <record model="ir.action.act_window" id="act_shipment_work_calendar">
             <field name="name">Shipment Work</field>
             <field name="res_model">shipment.work</field>
-            <field name="domain">[('state', 'not in', ['cancel', 'done', 'checked'])]</field>
+            <field name="domain" eval="[('state', 'not in', ('cancel', 'done', 'checked'))]" pyson="1"/>
         </record>
         <record model="ir.action.act_window.view"
             id="act_shipment_work_calendar_view1">
@@ -258,7 +258,7 @@
         <record model="ir.action.act_window" id="act_sales_form">
             <field name="name">Sales</field>
             <field name="res_model">sale.sale</field>
-            <field name="domain">[('shipment_works', 'in', Eval('active_ids'))]</field>
+            <field name="domain" eval="[('shipment_works', 'in', Eval('active_ids', []))]"  pyson="1"/>
         </record>
         <record model="ir.action.keyword" id="act_open_sales_keyword1">
             <field name="keyword">form_relate</field>
@@ -268,7 +268,7 @@
         <record model="ir.action.act_window" id="act_shipment_work_sales">
             <field name="name">Shipment Works</field>
             <field name="res_model">shipment.work</field>
-            <field name="domain">[('sales', 'in',  Eval('active_ids'))]</field>
+            <field name="domain" eval="[('sales', 'in',  Eval('active_ids'))]" pyson="1"/>
         </record>
         <record model="ir.action.keyword" id="act_shipment_work_sales_keyword1">
             <field name="keyword">form_relate</field>
