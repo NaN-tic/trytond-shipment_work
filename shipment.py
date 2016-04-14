@@ -267,6 +267,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         table = TableHandler(cls, module_name)
         sql_table = cls.__table__()
 
+        super(ShipmentWork, cls).__register__(module_name)
+
         # Migration from 3.4: change hours into timedelta duration
         if table.column_exist('planned_hours'):
             cursor.execute(*sql_table.select(
@@ -281,7 +283,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                         where=sql_table.id == id_))
             table.drop_column('planned_hours')
 
-        super(ShipmentWork, cls).__register__(module_name)
 
     @staticmethod
     def default_state():
