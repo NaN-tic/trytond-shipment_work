@@ -385,7 +385,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         red_sql = reduce_ids(relation.shipment, work_ids)
         return relation.join(line,
                 condition=(relation.work == line.work)
-                ).select(relation.shipment, Sum(line.duration),
+                ).select(relation.shipment, Sum(line.duration/3600.0),
                 where=red_sql,
                 group_by=relation.shipment), line
 
@@ -603,8 +603,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale_line.shipment_work = self
         sale_line.quantity = hours_to_invoice
         sale_line.product = config.shipment_work_hours_product
-        for key, value in sale_line.on_change_product().iteritems():
-            setattr(sale_line, key, value)
+        sale_line.on_change_product()
         sale_line.shipment_work = self
         return [sale_line]
 
@@ -655,17 +654,15 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
 
     @fields.depends('product', 'description', 'unit')
     def on_change_product(self):
-        changes = {}
         if not self.product:
-            return changes
+            return
         category = self.product.default_uom.category
         if not self.unit or self.unit not in category.uoms:
-            changes['unit'] = self.product.default_uom.id
-            changes['unit.rec_name'] = self.product.default_uom.rec_name
-            changes['unit_digits'] = self.product.default_uom.digits
+            self.unit = self.product.default_uom.id
+            self.unit.rec_name = self.product.default_uom.rec_name
+            self.unit_digits = self.product.default_uom.digits
         if not self.description:
-            changes['description'] = self.product.rec_name
-        return changes
+            self.description = self.product.rec_name
 
     @fields.depends('unit')
     def on_change_with_unit_digits(self, name=None):
@@ -692,8 +689,7 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
                     line = getattr(sale_line, parent[8:])
                 if not hasattr(line, key):
                     setattr(line, key, None)
-            for key, value in sale_line.on_change_product().iteritems():
-                setattr(sale_line, key, value)
+            sale_line.on_change_product()
         else:
             sale_line.unit_price = Decimal('0.0')
         sale_line.shipment_work_product = self

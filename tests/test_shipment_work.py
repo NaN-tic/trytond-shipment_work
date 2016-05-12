@@ -9,14 +9,15 @@ from trytond.tests.test_tryton import (doctest_setup, doctest_teardown,
     doctest_checker)
 
 
-class TestCase(ModuleTestCase):
+class ShipmentWorkTestCase(ModuleTestCase):
     'Test Shipment Work'
     module = 'shipment.work'
 
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(
+        ShipmentWorkTestCase))
     suite.addTests(doctest.DocFileSuite('scenario_shipment_work.rst',
             setUp=doctest_setup, tearDown=doctest_teardown, encoding='utf-8',
             optionflags=doctest.REPORT_ONLY_FIRST_FAILURE,
