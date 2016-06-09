@@ -419,33 +419,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         shipment.state = 'draft'
         return shipment
 
-    def get_timesheet_sale_lines(self, invoice_method):
-        pool = Pool()
-        SaleLine = pool.get('sale.line')
-        Config = pool.get('stock.configuration')
-        cursor = Transaction().connection.cursor()
-        lines = []
-        if invoice_method == 'no_invoice':
-            return lines
-
-        query, table = self._get_hours_query([self.id])
-        query.where &= table.invoice_method == invoice_method
-        cursor.execute(*query)
-        hours_to_invoice = dict(cursor.fetchall()).get(self.id)
-        if not hours_to_invoice:
-            return lines
-
-        config = Config(1)
-        if not config.shipment_work_hours_product:
-            self.raise_user_error('no_shipment_work_hours_product')
-        sale_line = SaleLine()
-        sale_line.shipment_work = self
-        sale_line.quantity = hours_to_invoice
-        sale_line.product = config.shipment_work_hours_product
-        sale_line.on_change_product()
-        sale_line.shipment_work = self
-        return [sale_line]
-
 
 class ShipmentWorkTimesheetAsk(ModelView):
     'Shipment Work Timesheet'
