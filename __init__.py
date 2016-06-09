@@ -5,18 +5,18 @@ from .configuration import *
 from .shipment import *
 from .invoice import *
 
-
 def register():
     Pool.register(
         Configuration,
         ConfigurationCompany,
         ShipmentWork,
-        ShipmentWorkProduct,
-        ShipmentWorkWorkRelation,
         ShipmentWorkEmployee,
+        ShipmentWorkTimesheetAsk,
+        ProjectWork,
         TimesheetLine,
-        Sale,
-        SaleLine,
         StockMove,
         InvoiceLine,
         module='shipment_work', type_='model')
+    Pool.register(
+        ShipmentWorkTimesheet,
+        module='shipment_work', type_='wizard')

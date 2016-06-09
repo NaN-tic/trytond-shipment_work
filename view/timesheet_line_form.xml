@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!-- The COPYRIGHT file at the top level of this repository contains the full
-     copyright notices and license terms. -->
-<data>
-    <xpath expr="/form/field[@name='duration']" position="after">
-        <label name="invoice_method"/>
-        <field name="invoice_method"/>
-    </xpath>
-</data>

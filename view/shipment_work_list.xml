@@ -3,7 +3,7 @@
      copyright notices and license terms. -->
 <tree string="Shipment Work">
     <field name="party"/>
-    <field name="work_name"/>
+    <field name="project"/>
     <field name="planned_duration"/>
     <field name="planned_date"/>
     <field name="done_date"/>

@@ -4,8 +4,8 @@
 <form string="Shipment Work">
     <label name="party"/>
     <field name="party"/>
-    <label name="work_name"/>
-    <field name="work_name"/>
+    <label name="project"/>
+    <field name="project"/>
     <group id="dates" colspan="4"  col="6">
         <label name="planned_date"/>
         <field name="planned_date"/>
@@ -14,7 +14,6 @@
         <label name="company"/>
         <field name="company"/>
     </group>
-
     <label name="planned_duration"/>
     <field name="planned_duration"/>
     <label name="total_hours"/>
@@ -26,26 +25,22 @@
             <separator name="done_description"/>
             <field name="done_description"/>
         </page>
+        <page name="tasks">
+            <field name="tasks"/>
+        </page>
         <page name="employees">
             <field name="employees"/>
         </page>
         <page id="costs" string="Costs">
-            <label name="invoice_method"/>
-            <field name="invoice_method"/>
-            <label name="timesheet_invoice_method"/>
-            <field name="timesheet_invoice_method"/>
+            <label name="project_invoice_method"/>
+            <field name="project_invoice_method"/>
             <label name="warehouse"/>
             <field name="warehouse"/>
             <label name="payment_term"/>
             <field name="payment_term"/>
-            <field name="products" colspan="2"/>
-            <field name="timesheet_lines" colspan="2"/>
         </page>
         <page name="stock_moves">
             <field name="stock_moves"/>
-        </page>
-        <page name="sales">
-            <field name="sales"/>
         </page>
         <page name="invoice_lines">
             <field name="invoice_lines" colspan="4" widget="many2many"/>
@@ -54,13 +49,14 @@
     <group id="state_buttons" colspan="4">
         <label name="state"/>
         <field name="state"/>
-        <group id="buttons" colspan="2" col="6">
+        <group id="buttons" colspan="2" col="7">
             <button name="draft" string="Draft"/>
             <button name="pending" string="Pending"/>
             <button name="plan" string="Plan"/>
             <button name="done" string="Done"/>
             <button name="check" string="Check"/>
             <button name="cancel" string="Cancel"/>
+            <button name="add_timesheet" string="Add Timesheet" icon="tryton-ok"/>
         </group>
     </group>
 </form>

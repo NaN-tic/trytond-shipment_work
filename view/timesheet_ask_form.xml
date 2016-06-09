@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<form string="Add Timesheet" col="6">
+    <label name="duration"/>
+    <field name="duration"/>
+    <label name="description"/>
+    <field name="description"/>
+</form>
