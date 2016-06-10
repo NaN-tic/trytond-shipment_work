@@ -6,6 +6,8 @@
     <field name="party"/>
     <label name="project"/>
     <field name="project"/>
+    <label name="number"/>
+    <field name="number"/>
     <group id="dates" colspan="4"  col="6">
         <label name="planned_date"/>
         <field name="planned_date"/>
@@ -26,7 +28,9 @@
             <field name="done_description"/>
         </page>
         <page name="tasks">
-            <field name="tasks"/>
+            <label name="shipment_work_project"/>
+            <field name="shipment_work_project"/>
+            <field name="tasks" colspan="4"/>
         </page>
         <page name="employees">
             <field name="employees"/>

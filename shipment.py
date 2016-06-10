@@ -1,15 +1,12 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 import datetime
-from itertools import izip
-from sql.aggregate import Sum
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields
 from trytond.wizard import Wizard, StateView, StateTransition, Button
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
-from trytond.tools import reduce_ids
 from trytond import backend
 from trytond.modules.project_invoice.work import INVOICE_METHODS
 
@@ -84,15 +81,25 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('party', '=', Eval('party')),
             ],
         depends=['state', 'party'])
-    tasks = fields.One2Many('project.work', 'shipment_work', 'Tasks',
+    shipment_work_project = fields.Many2One('project.work', 'Shipment Work Project',
         states={
             'readonly': Eval('state') != 'draft',
             },
         domain=[
             ('parent', '=', Eval('project')),
+            ('type', '=', 'project'),
+            ('party', '=', Eval('party')),
+            ],
+        depends=['state', 'project', 'party'])
+    tasks = fields.One2Many('project.work', 'shipment_work', 'Tasks',
+        states={
+            'readonly': Eval('state') != 'draft',
+            },
+        domain=[
+            ('parent', '=', Eval('shipment_work_project')),
             ('type', '=', 'task'),
             ],
-        depends=['state', 'project'])
+        depends=['state', 'shipment_work_project'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -305,6 +312,31 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         return res
 
     @classmethod
+    def get_timesheet_work(cls, values):
+        TimesheetWork =  Pool().get('timesheet.work')
+
+        work = TimesheetWork()
+        work.name = values['number']
+        return work
+
+    @classmethod
+    def get_project_work(cls, values, type_='project'):
+        ProjectWork =  Pool().get('project.work')
+
+        pwork = ProjectWork()
+        pwork.name = values['number']
+        pwork.parent = values['project']
+        pwork.type = type_
+        pwork.project_invoice_method = values['project_invoice_method']
+        pwork.invoice_product_type = 'service'
+        pwork.party = values['party']
+
+        work = cls.get_timesheet_work(values)
+        work.save()
+        pwork.work = work.id
+        return pwork
+
+    @classmethod
     def create(cls, vlist):
         pool = Pool()
         Config = pool.get('stock.configuration')
@@ -318,6 +350,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 if not config.shipment_work_sequence:
                     cls.raise_user_error('missing_shipment_sequence')
                 values['number'] = Sequence.get_id(config.shipment_work_sequence.id)
+            # create shipment project work + timesheet work
+            work = cls.get_project_work(values)
+            work.save()
+            values['shipment_work_project'] = work.id
 
         return super(ShipmentWork, cls).create(vlist)
 
@@ -325,6 +361,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def copy(cls, shipments, defaults=None):
         if defaults is None:
             defaults = {}
+        defaults.setdefault('number', None)
+        defaults.setdefault('shipment_project_work', None)
         defaults.setdefault('stock_moves', [])
         defaults.setdefault('done_description')
         new_shipments = super(ShipmentWork, cls).copy(shipments, defaults)
@@ -332,16 +370,23 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def delete(cls, shipments):
-        Work = Pool().get('timesheet.work')
+        pool = Pool()
+        ProjectWork = pool.get('project.work')
+        Work = pool.get('timesheet.work')
+
         cls.cancel(shipments)
         for shipment in shipments:
             if shipment.state != 'cancel':
                 cls.raise_user_error('delete_cancel', (shipment.rec_name,))
 
-        # TODO force to delete timesheet works related with other projects
-        # or check the work not use with other project works?
-        works = [s.project.work for s in shipments if s.project.work]
+        # delete shipment project work + timesheet work
+        project_works = [s.shipment_work_project for s in shipments
+                if s.shipment_work_project]
+        works = [s.shipment_work_project.work for s in shipments
+                if s.shipment_work_project and s.shipment_work_project.work]
+
         super(ShipmentWork, cls).delete(shipments)
+        ProjectWork.delete(project_works)
         Work.delete(works)
 
     @classmethod
@@ -444,8 +489,10 @@ class ShipmentWorkTimesheet(Wizard):
         cls._error_messages.update({
             'no_employee': 'You must select an employee in yours user '
                 'preferences!',
-            'no_work': 'You must select a work in your project related in'
-                ' shipment work.',
+            'no_project_work': 'You must select a Shipment Project Work before '
+                'add timesheet.',
+            'no_work': 'You must select a timesheet work in Shipment Project Work '
+                'before add timesheet.',
         })
 
     def transition_handle(self):
@@ -460,14 +507,16 @@ class ShipmentWorkTimesheet(Wizard):
             self.raise_user_error('no_employee')
 
         swork = ShipmentWork(Transaction().context['active_id'])
-        if not swork.project.work:
+        if not swork.shipment_work_project:
+            self.raise_user_error('no_project_work')
+        if not swork.shipment_work_project.work:
             self.raise_user_error('no_work')
 
         line = Line()
         line.employee = user.employee
         line.date = Date.today()
         line.duration = self.ask.duration
-        line.work = swork.project.work
+        line.work = swork.shipment_work_project.work
         line.description = self.ask.description
         line.save()
 
@@ -478,29 +527,6 @@ class ProjectWork:
     __metaclass__ = PoolMeta
     __name__ = 'project.work'
     shipment_work = fields.Many2One('shipment.work', 'Shipment Work')
-
-    @classmethod
-    def create(cls, vlist):
-        Work = Pool().get('timesheet.work')
-
-        vlist = [x.copy() for x in vlist]
-
-        # create timesheet works that not related in project
-        to_create_work = []
-        to_values = []
-        for values in vlist:
-            if not values.get('work'):
-                to_create_work.append({
-                    'name': values['name'],
-                    })
-                to_values.append(values)
-
-        if to_create_work:
-            works = Work.create(to_create_work)
-            for values, work in izip(to_values, works):
-                values['work'] = work.id
-
-        return super(ProjectWork, cls).create(vlist)
 
 
 class TimesheetLine:
