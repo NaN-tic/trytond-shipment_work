@@ -11,7 +11,7 @@ from trytond.tests.test_tryton import (doctest_setup, doctest_teardown,
 
 class ShipmentWorkTestCase(ModuleTestCase):
     'Test Shipment Work'
-    module = 'shipment.work'
+    module = 'shipment_work'
 
 
 def suite():

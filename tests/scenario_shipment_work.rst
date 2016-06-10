@@ -4,7 +4,6 @@ Shipment Work Scenario
 
 Imports::
 
-
     >>> import datetime
     >>> from dateutil.relativedelta import relativedelta
     >>> from decimal import Decimal
@@ -18,17 +17,16 @@ Imports::
     ...     set_fiscalyear_invoice_sequences, create_payment_term
     >>> today = datetime.date.today()
 
-
 Create database::
 
     >>> config = config.set_trytond()
     >>> config.pool.test = True
 
-Install sale::
+Install shipment work::
 
     >>> Module = Model.get('ir.module')
     >>> module, = Module.find([('name', '=', 'shipment_work')])
-    >>> Module.install([module.id], config.context)
+    >>> module.click('install')
     >>> Wizard('ir.module.install_upgrade').execute('upgrade')
 
 Create company::
@@ -77,48 +75,25 @@ Create category::
 Create product::
 
     >>> ProductUom = Model.get('product.uom')
-    >>> unit, = ProductUom.find([('name', '=', 'Unit')])
     >>> hour, = ProductUom.find([('name', '=', 'Hour')])
-    >>> ProductTemplate = Model.get('product.template')
     >>> Product = Model.get('product.product')
+    >>> ProductTemplate = Model.get('product.template')
     >>> product = Product()
     >>> template = ProductTemplate()
-    >>> template.name = 'product'
-    >>> template.category = category
-    >>> template.default_uom = unit
-    >>> template.type = 'assets'
-    >>> template.purchasable = True
-    >>> template.salable = True
-    >>> template.list_price = Decimal('10')
-    >>> template.cost_price = Decimal('8')
-    >>> template.cost_price_method = 'fixed'
-    >>> template.account_expense = expense
+    >>> template.name = 'Service'
+    >>> template.default_uom = hour
+    >>> template.type = 'service'
+    >>> template.list_price = Decimal('20')
+    >>> template.cost_price = Decimal('5')
     >>> template.account_revenue = revenue
     >>> template.save()
     >>> product.template = template
     >>> product.save()
-    >>> hours_product = Product()
-    >>> template = ProductTemplate()
-    >>> template.name = 'product'
-    >>> template.category = category
-    >>> template.default_uom = hour
-    >>> template.type = 'service'
-    >>> template.purchasable = True
-    >>> template.salable = True
-    >>> template.list_price = Decimal('10')
-    >>> template.cost_price = Decimal('8')
-    >>> template.cost_price_method = 'fixed'
-    >>> template.account_expense = expense
-    >>> template.account_revenue = revenue
-    >>> template.save()
-    >>> hours_product.template = template
-    >>> hours_product.save()
 
 Create payment term::
 
     >>> payment_term = create_payment_term()
     >>> payment_term.save()
-
 
 Create Employee::
 
@@ -127,6 +102,24 @@ Create Employee::
     >>> employee_party.save()
     >>> employee = Employee(company=company, party=employee_party)
     >>> employee.save()
+    >>> user = User(1)
+    >>> user.employees.append(employee)
+    >>> user.employee = employee
+    >>> user.save()
+    >>> config._context = User.get_preferences(True, config.context)
+
+Create a Project (Invoice Product Service)::
+
+    >>> ProjectWork = Model.get('project.work')
+    >>> project = ProjectWork()
+    >>> project.name = 'Test Project'
+    >>> project.type = 'project'
+    >>> project.party = customer
+    >>> project.project_invoice_method = 'progress'
+    >>> project.product = product
+    >>> project.effort_duration = datetime.timedelta(hours=1)
+    >>> project.invoice_product_type = 'service'
+    >>> project.save()
 
 Configure shipment work::
 
@@ -137,167 +130,98 @@ Configure shipment work::
     ...     ('code', '=', 'shipment.work'),
     ...     ])
     >>> stock_config.shipment_work_sequence = shipment_work_sequence
-    >>> stock_config.shipment_work_hours_product = hours_product
     >>> stock_config.save()
 
 Create a shipment work with two lines::
 
-    >>> Shipment = Model.get('shipment.work')
+    >>> Shipmentwork = Model.get('shipment.work')
     >>> Location = Model.get('stock.location')
-    >>> shipment = Shipment()
-    >>> shipment.work_description = 'Work'
-    >>> shipment.party = customer
-    >>> shipment.click('pending')
-    >>> shipment.work_name
-    u'1'
-    >>> shipment.state
-    u'pending'
-    >>> shipment.planned_date = today
-    >>> shipment.employees.append(employee)
-    >>> shipment.click('plan')
-    >>> shipment.state
-    u'planned'
-    >>> shipment.done_description = 'Done'
-    >>> shipment.click('done')
-    >>> shipment.state
-    u'done'
-    >>> line = shipment.products.new()
-    >>> line.description = 'Unkown product'
-    >>> line.quantity = 1.0
-    >>> line.unit = unit
-    >>> line.quantity = 1.0
-    >>> line.invoice_method
-    u'invoice'
-    >>> line = shipment.products.new()
-    >>> line.product = product
-    >>> line.quantity = 1.0
-    >>> line.invoice_method = 'no_invoice'
+    >>> swork = Shipmentwork()
+    >>> swork.party = customer
+    >>> swork.project = project
+    >>> swork.planned_date = today
+    >>> swork.work_description = 'Test Shipment Work'
+    >>> employee = Employee(employee.id)
+    >>> swork.employees.append(employee)
     >>> warehouse, = Location.find([('type', '=', 'warehouse')])
-    >>> shipment.warehouse = warehouse
-    >>> shipment.payment_term = payment_term
-    >>> shipment.save()
-
-When the shipment work is checked a sale is created::
-
-    >>> shipment.click('check')
-    >>> shipment.state
-    u'checked'
-    >>> invoice_sale, no_invoice_sale = shipment.sales
-    >>> invoice_sale.state
-    u'draft'
-    >>> no_invoice_sale.state
-    u'draft'
-    >>> invoice_sale.invoice_method
-    u'order'
-    >>> no_invoice_sale.invoice_method
-    u'manual'
-    >>> description_line, =  invoice_sale.lines
-    >>> description_line.product
-    >>> description_line.description
-    u'Unkown product'
-    >>> description_line.quantity
-    1.0
-    >>> description_line.unit == unit
-    True
-    >>> description_line.unit_price
-    Decimal('0.0')
-    >>> product_line, = no_invoice_sale.lines
-    >>> product_line.product == product
-    True
-    >>> product_line.unit_price == product.template.list_price
-    True
-
-Create a shipment work to invoice its hours::
-
-    >>> shipment = Shipment()
-    >>> shipment.work_description = 'Work'
-    >>> shipment.party = customer
-    >>> shipment.timesheet_invoice_method
-    'invoice'
-    >>> shipment.click('pending')
-    >>> shipment.state
+    >>> swork.warehouse = warehouse
+    >>> swork.save()
+    >>> swork.click('pending')
+    >>> swork.state
     u'pending'
-    >>> shipment.planned_date = today
-    >>> employee = Employee(employee.id)
-    >>> shipment.employees.append(employee)
-    >>> shipment.click('plan')
-    >>> timesheet_line = shipment.timesheet_lines.new()
-    >>> timesheet_line.duration = datetime.timedelta(hours=2.5)
-    >>> timesheet_line.employee = employee
-    >>> timesheet_line.work = shipment.work
-    >>> timesheet_line.invoice_method
-    u'invoice'
-    >>> timesheet_line = shipment.timesheet_lines.new()
-    >>> timesheet_line.duration = datetime.timedelta(hours=1.0)
-    >>> timesheet_line.employee = employee
-    >>> timesheet_line.work = shipment.work
-    >>> timesheet_line.invoice_method = 'no_invoice'
-    >>> shipment.done_description = 'Done'
-    >>> shipment.payment_term = payment_term
-    >>> shipment.click('done')
-    >>> shipment.total_hours
-    3.5
-    >>> shipment.click('check')
-    >>> invoice_sale, = shipment.sales
-    >>> invoice_sale.state
-    u'draft'
-    >>> no_invoice_sale.state
-    u'draft'
-    >>> invoice_sale.invoice_method
-    u'order'
-    >>> sale_line, = invoice_sale.lines
-    >>> sale_line.product == hours_product
-    True
-    >>> sale_line.unit_price == hours_product.template.list_price
-    True
-    >>> sale_line.quantity
-    2.5
-
-A shipment work can be canceld::
-
-    >>> shipment = Shipment()
-    >>> shipment.work_description = 'Work'
-    >>> shipment.party = customer
-    >>> shipment.timesheet_invoice_method
-    'invoice'
-    >>> shipment.click('pending')
-    >>> shipment.state
-    u'pending'
-    >>> shipment.planned_date = today
-    >>> employee = Employee(employee.id)
-    >>> shipment.employees.append(employee)
-    >>> shipment.click('plan')
-    >>> timesheet_line = shipment.timesheet_lines.new()
-    >>> timesheet_line.duration = datetime.timedelta(hours=2.5)
-    >>> timesheet_line.employee = employee
-    >>> timesheet_line.work = shipment.work
-    >>> timesheet_line.invoice_method
-    u'invoice'
-    >>> shipment.done_description = 'Done'
-    >>> shipment.payment_term = payment_term
-    >>> shipment.click('done')
-    >>> shipment.click('check')
-    >>> invoice_sale, = shipment.sales
-    >>> invoice_sale.state
-    u'draft'
-    >>> shipment.click('done')
-    >>> shipment.state
+    >>> task1 = ProjectWork()
+    >>> swork.tasks.append(task1)
+    >>> task1.name = 'Test Task 1'
+    >>> task1.type = 'task'
+    >>> task1.invoice_product_type = 'service'
+    >>> task1.parent = swork.shipment_work_project
+    >>> task2 = ProjectWork()
+    >>> swork.tasks.append(task2)
+    >>> task2.name = 'Test Task 2'
+    >>> task2.type = 'task'
+    >>> task2.invoice_product_type = 'service'
+    >>> task2.parent = swork.shipment_work_project
+    >>> swork.click('plan')
+    >>> swork.state
+    u'planned'
+    >>> swork.done_description = 'Shipment Work Done'
+    >>> swork.click('done')
+    >>> swork.state
     u'done'
-    >>> sale, = shipment.sales
-    >>> sale.state
-    u'cancel'
-    >>> shipment.click('check')
-    >>> cancel_sale, draft_sale = sorted(shipment.sales, key=lambda a: a.state)
-    >>> cancel_sale.state
-    u'cancel'
-    >>> draft_sale.state
-    u'draft'
-    >>> draft_sale.click('quote')
-    >>> draft_sale.click('confirm')
-    >>> draft_sale.click('process')
-    >>> shipment.click('done')
-    Traceback (most recent call last):
-        ...
-    UserError: ('UserError', (u'Can not mark shipment "3 - Customer" as done because its related sale "1" can not be canceled.', ''))
-    >>> shipment.state
+
+Add Timesheet Work::
+
+    >>> add = Wizard('shipment_work.shipment.work.timesheet', [swork])
+    >>> add.form.duration = datetime.timedelta(0.01)
+    >>> add.form.description = 'Demo description'
+    >>> add.execute('handle')
+    >>> add.state
+    'end'
+
+Create stock product::
+
+    >>> unit, = ProductUom.find([('name', '=', 'Unit')])
+    >>> product = Product()
+    >>> template = ProductTemplate()
+    >>> template.name = 'Product'
+    >>> template.default_uom = unit
+    >>> template.type = 'goods'
+    >>> template.list_price = Decimal('20')
+    >>> template.cost_price = Decimal('8')
+    >>> template.save()
+    >>> product.template = template
+    >>> product.save()
+
+Get stock locations::
+
+    >>> Location = Model.get('stock.location')
+    >>> warehouse_loc, = Location.find([('code', '=', 'WH')])
+    >>> supplier_loc, = Location.find([('code', '=', 'SUP')])
+    >>> customer_loc, = Location.find([('code', '=', 'CUS')])
+    >>> output_loc, = Location.find([('code', '=', 'OUT')])
+    >>> storage_loc, = Location.find([('code', '=', 'STO')])
+
+Create Stock Moves related with shipment work::
+
+    >>> Move = Model.get('stock.move')
+    >>> move = Move()
+    >>> move.product = product
+    >>> move.uom =unit
+    >>> move.quantity = 1
+    >>> move.from_location = output_loc
+    >>> move.to_location = customer_loc
+    >>> move.company = company
+    >>> move.unit_price = Decimal('1')
+    >>> move.currency = company.currency
+    >>> swork.stock_moves.append(move)
+    >>> swork.save()
+
+Check shipment work::
+
+    >>> swork.click('check')
+    >>> swork.state
     u'checked'
+    >>> swork.reload()
+    >>> move, = swork.stock_moves
+    >>> move.shipment.state
+    u'done'

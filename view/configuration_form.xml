@@ -5,7 +5,5 @@
     <xpath expr="/form" position="inside">
         <label name="shipment_work_sequence"/>
         <field name="shipment_work_sequence"/>
-        <label name="shipment_work_hours_product"/>
-        <field name="shipment_work_hours_product"/>
     </xpath>
 </data>

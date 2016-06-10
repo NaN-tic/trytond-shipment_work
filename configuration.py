@@ -21,15 +21,6 @@ class Configuration:
                 ], required=True),
         'get_company_config', 'set_company_config')
 
-    shipment_work_hours_product = fields.Function(fields.Many2One(
-            'product.product', 'Shipment Work Hours Product',
-            help='The product used to invoice the service hours of a shipment',
-            domain=[
-                ('type', '=', 'service'),
-                ('salable', '=', True),
-                ]),
-        'get_company_config', 'set_company_config')
-
     @classmethod
     def get_company_config(self, configs, names):
         pool = Pool()
@@ -82,10 +73,3 @@ class ConfigurationCompany(ModelSQL):
             ('code', '=', 'shipment.work'),
             ],
         depends=['company'])
-    shipment_work_hours_product = fields.Many2One('product.product',
-        'Shipment Work Hours Product',
-        domain=[
-            ('type', '=', 'service'),
-            ])
-
-

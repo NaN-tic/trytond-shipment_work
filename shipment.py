@@ -95,13 +95,14 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         depends=['state', 'project', 'party'])
     tasks = fields.One2Many('project.work', 'shipment_work', 'Tasks',
         states={
-            'readonly': Eval('state') != 'draft',
+            'readonly': ((Eval('state') != 'draft')
+                | ~Eval('shipment_work_project') | ~Eval('party')),
             },
         domain=[
             ('parent', '=', Eval('shipment_work_project')),
             ('type', '=', 'task'),
             ],
-        depends=['state', 'shipment_work_project'])
+        depends=['state', 'shipment_work_project', 'party'])
     warehouse = fields.Many2One('stock.location', 'Warehouse',
         domain=[
             ('type', '=', 'warehouse'),
@@ -169,10 +170,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 'missing_shipment_sequence': ('There is no shipment work '
                     'sequence defined. Please define one in stock '
                     'configuration.'),
-                'no_shipment_work_hours_product': ('There is no product '
-                    'defined to invoice the timesheet lines. Please define one'
-                    ' in stock configuration.'),
-
                 })
         cls._transitions |= set((
                 ('draft', 'pending'),
