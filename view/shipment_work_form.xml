@@ -46,9 +46,6 @@
         <page name="stock_moves">
             <field name="stock_moves"/>
         </page>
-        <page name="invoice_lines">
-            <field name="invoice_lines" colspan="4" widget="many2many"/>
-        </page>
     </notebook>
     <group id="state_buttons" colspan="4">
         <label name="state"/>

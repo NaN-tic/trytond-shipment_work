@@ -157,12 +157,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
         depends=['customer_location', 'warehouse_output', 'state', 'company'])
-    invoice_lines = fields.One2Many('account.invoice.line', 'shipment_work',
-        'Invoice Lines', domain=[
-            ('invoice.company', '=', Eval('company', -1)),
-            ], states={
-            'readonly': Eval('state').in_(['checked', 'cancel']),
-            }, depends=['company'])
 
     @classmethod
     def __setup__(cls):

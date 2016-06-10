@@ -3,7 +3,6 @@
 from trytond.pool import Pool
 from .configuration import *
 from .shipment import *
-from .invoice import *
 
 def register():
     Pool.register(
@@ -15,7 +14,6 @@ def register():
         ProjectWork,
         TimesheetLine,
         StockMove,
-        InvoiceLine,
         module='shipment_work', type_='model')
     Pool.register(
         ShipmentWorkTimesheet,

@@ -160,6 +160,7 @@
             <field name="group" ref="group_shipment_work_admin"/>
         </record>
 
+        <!-- keywork shipment work to tasks -->
         <record model="ir.action.act_window" id="act_project_task_form">
             <field name="name">Tasks</field>
             <field name="res_model">project.work</field>
@@ -171,6 +172,20 @@
             <field name="keyword">form_relate</field>
             <field name="model">shipment.work,-1</field>
             <field name="action" ref="act_project_task_form"/>
+        </record>
+
+        <!-- keywork shipment work to invoice lines -->
+        <record model="ir.action.act_window" id="act_project_invoice_line_form">
+            <field name="name">Invoice Lines</field>
+            <field name="res_model">account.invoice.line</field>
+            <field name="domain" eval="[('id', 'in', Eval('invoice_line'))]"
+                pyson="1"/>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_open_project_invoice_line_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">shipment.work,-1</field>
+            <field name="action" ref="act_project_invoice_line_form"/>
         </record>
 
         <!-- wizard shipment.work.timesheet -->
