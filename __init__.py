@@ -17,4 +17,5 @@ def register():
         module='shipment_work', type_='model')
     Pool.register(
         ShipmentWorkTimesheet,
+        ShipmentWorkOpenTimesheetLine,
         module='shipment_work', type_='wizard')

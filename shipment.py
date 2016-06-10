@@ -3,16 +3,18 @@
 import datetime
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields
-from trytond.wizard import Wizard, StateView, StateTransition, Button
+from trytond.wizard import Wizard, StateAction, StateView, StateTransition, Button
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
+from trytond.pyson import PYSONEncoder
 from trytond import backend
 from trytond.modules.project_invoice.work import INVOICE_METHODS
 
 __all__ = ['ShipmentWorkEmployee', 'ShipmentWork',
     'ShipmentWorkTimesheetAsk', 'ShipmentWorkTimesheet',
-    'ProjectWork', 'TimesheetLine', 'StockMove']
+    'ShipmentWorkOpenTimesheetLine', 'ProjectWork', 'TimesheetLine',
+    'StockMove']
 
 
 class ShipmentWorkEmployee(ModelSQL):
@@ -515,6 +517,27 @@ class ShipmentWorkTimesheet(Wizard):
         line.save()
 
         return 'end'
+
+
+class ShipmentWorkOpenTimesheetLine(Wizard):
+    'Shipment Work Open Timeshee tLine'
+    __name__ = 'shipemnt.work.open.timesheet.line'
+    start_state = 'open_'
+    open_ = StateAction('timesheet.act_line_form')
+
+    def do_open_(self, action):
+        ShipmentWork = Pool().get('shipment.work')
+
+        active_ids = Transaction().context['active_ids']
+        sworks = ShipmentWork.search([('id', 'in', active_ids)])
+        works = [s.shipment_work_project for s in sworks
+                if s.shipment_work_project]
+
+        action['pyson_domain'] = PYSONEncoder().encode([
+                ('work', 'in', [w.work.id for w in works if w.work]),
+                ])
+
+        return action, {}
 
 
 class ProjectWork:
