@@ -286,10 +286,23 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @fields.depends('party', 'payment_term')
     def on_change_party(self):
+        ProjectWork = Pool().get('project.work')
+
         payment_term = None
         if self.party:
             if self.party.customer_payment_term:
                 payment_term = self.party.customer_payment_term
+    
+            project_works = ProjectWork.search([
+                ('party', '=', self.party),
+                ('parent', '=', None),
+                ('type', '=', 'project'),
+                ])
+            if len(project_works) == 1:
+                self.project = project_works[0]
+        else:
+            self.project = None
+
         if payment_term:
             self.payment_term = payment_term
             self.payment_term.rec_name = payment_term.rec_name
