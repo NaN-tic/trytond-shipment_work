@@ -332,7 +332,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         pwork.name = values['number']
         pwork.parent = values['project']
         pwork.type = type_
-        pwork.project_invoice_method = values['project_invoice_method']
+        pwork.project_invoice_method = values.get('project_invoice_method',
+                ProjectWork.default_project_invoice_method())
         pwork.invoice_product_type = 'service'
         pwork.party = values['party']
 
