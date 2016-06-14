@@ -31,8 +31,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     __name__ = 'shipment.work'
     _rec_name = 'number'
 
-    number = fields.Char('Number', required=True,
-            readonly=True)
+    number = fields.Char('Number', required=True, readonly=True)
     company = fields.Many2One('company.company', 'Company', required=True,
         select=True, states={
             'readonly': Eval('state') != 'draft',
@@ -297,9 +296,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 ('party', '=', self.party),
                 ('parent', '=', None),
                 ('type', '=', 'project'),
-                ])
-            if len(project_works) == 1:
-                self.project = project_works[0]
+                ], limit=1)
+            if project_works:
+                self.project, = project_works
         else:
             self.project = None
 
