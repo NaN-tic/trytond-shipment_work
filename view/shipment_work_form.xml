@@ -14,7 +14,6 @@
         <label name="company"/>
         <field name="company"/>
     </group>
-
     <label name="planned_duration"/>
     <field name="planned_duration"/>
     <label name="total_hours"/>
@@ -38,17 +37,18 @@
             <field name="warehouse"/>
             <label name="payment_term"/>
             <field name="payment_term"/>
+            <label name="cost"/>
+            <field name="cost"/>
+            <newline/>
             <field name="products" colspan="2"/>
             <field name="timesheet_lines" colspan="2"/>
         </page>
         <page name="stock_moves">
             <field name="stock_moves"/>
         </page>
-        <page name="sales">
-            <field name="sales"/>
-        </page>
-        <page name="invoice_lines">
-            <field name="invoice_lines" colspan="4" widget="many2many"/>
+        <page name="invoices">
+            <field name="invoices" colspan="4"/>
+            <field name="invoice_lines" colspan="4"/>
         </page>
     </notebook>
     <group id="state_buttons" colspan="4">

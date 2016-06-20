@@ -11,7 +11,6 @@ __all__ = ['Configuration', 'ConfigurationCompany']
 class Configuration:
     __name__ = 'stock.configuration'
     __metaclass__ = PoolMeta
-
     shipment_work_sequence = fields.Function(fields.Many2One('ir.sequence',
             'Shipment Work Sequence',
             domain=[
@@ -20,16 +19,19 @@ class Configuration:
                 ('code', '=', 'shipment.work'),
                 ], required=True),
         'get_company_config', 'set_company_config')
-
     shipment_work_hours_product = fields.Function(fields.Many2One(
             'product.product', 'Shipment Work Hours Product',
-            help='The product used to invoice the service hours of a shipment',
             domain=[
                 ('type', '=', 'service'),
                 ('salable', '=', True),
-                ]),
+                ],
+            required=True,
+            help='The product used to invoice the service hours of a shipment'),
         'get_company_config', 'set_company_config')
-
+    shipment_work_journal = fields.Function(fields.Many2One('account.journal',
+            'Shipment Work Journal', required=True),
+        'get_company_config', 'set_company_config')
+            
     @classmethod
     def get_company_config(self, configs, names):
         pool = Pool()
@@ -87,5 +89,5 @@ class ConfigurationCompany(ModelSQL):
         domain=[
             ('type', '=', 'service'),
             ])
-
-
+    shipment_work_journal = fields.Many2One('account.journal',
+        'Shipment Work Journal')

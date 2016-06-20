@@ -37,11 +37,6 @@
             <field name="name">timesheet_line_tree</field>
             <field name="inherit" ref="timesheet.line_view_tree"/>
         </record>
-        <record model="ir.ui.view" id="stock_configuration_view_form">
-            <field name="model">stock.configuration</field>
-            <field name="name">configuration_form</field>
-            <field name="inherit" ref="stock.stock_configuration_view_form"/>
-        </record>
         <record model="ir.ui.view" id="shipment_work_view_form">
             <field name="model">shipment.work</field>
             <field name="type">form</field>
@@ -222,6 +217,7 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+<!--
         <record model="ir.model.field.access"
                 id="access_shipment_work_product_invoice_method">
             <field name="field" search="[('model.model', '=', 'shipment.work.product'), ('name', '=', 'invoice_method')]"/>
@@ -239,6 +235,8 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+-->
+<!--
         <record model="ir.model.field.access"
                 id="access_timesheet_line_invoice_method">
             <field name="field" search="[('model.model', '=', 'timesheet.line'), ('name', '=', 'invoice_method')]"/>
@@ -256,6 +254,8 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+-->
+<!--
         <record model="ir.action.act_window" id="act_sales_form">
             <field name="name">Sales</field>
             <field name="res_model">sale.sale</field>
@@ -280,6 +280,7 @@
             <field name="action" ref="act_sales_form"/>
             <field name="group" ref="sale.group_sale"/>
         </record>
+-->
         <record model="ir.sequence.type" id="sequence_type_shipment_work">
             <field name="name">Shipment Work</field>
             <field name="code">shipment.work</field>

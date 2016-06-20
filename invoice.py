@@ -1,20 +1,24 @@
-# -*- encoding: utf-8 -*-
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from trytond.model import fields
-from trytond.pool import PoolMeta
-from trytond.pyson import Eval
+from trytond.pool import Pool, PoolMeta
 
 __all__ = ['InvoiceLine']
 
 
 class InvoiceLine:
-    __name__ = 'account.invoice.line'
     __metaclass__ = PoolMeta
+    __name__ = 'account.invoice.line'
 
-    shipment_work = fields.Many2One('shipment.work', 'Shipment Work',
-        states={
-            'invisible': ~Eval('_parent_invoice', {}).get('type',
-                Eval('invoice_type')).in_(['in_invoice', 'in_credit_note']),
-            },
-        depends=[])
+    @property
+    def origin_name(self):
+        ShipmentWork = Pool().get('shipment.work')
+        name = super(InvoiceLine, self).origin_name
+        if isinstance(self.origin, ShipmentWork):
+            name = self.origin.rec_name
+        return name
+
+    @classmethod
+    def _get_origin(cls):
+        models = super(InvoiceLine, cls)._get_origin()
+        models.append('shipment.work')
+        return models
