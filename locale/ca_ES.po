@@ -1,4 +1,4 @@
-# 
+#
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
@@ -11,12 +11,36 @@ msgid "The work must be unique."
 msgstr "El treball ha de ser únic."
 
 msgctxt "error:shipment.work:"
+msgid "A default journal has not been defined."
+msgstr "S'ha de definir un diari per defecte."
+
+msgctxt "error:shipment.work:"
+msgid "A payment term has not been defined."
+msgstr "S'ha de definir un termini de pagament."
+
+msgctxt "error:shipment.work:"
 msgid ""
-"Can not mark shipment \"%s\" as done because its related sale \"%s\" can not"
-" be canceled."
+"Can not mark shipments as done because its related the invoice \"%s\" can "
+"not be canceled."
 msgstr ""
-"L'albarà de treball  \"%s\" no es pot realitzar perquè la seva venda "
-"relacionada \"%s\" no es pot cancel·lar."
+"No es pot canviar l'albarà a realitzat perque les factures \"%s\" no es "
+"poden cancel·lar."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a default address."
+msgstr "El tercer \"%s\" (%s) no dispossa d'una adreça per defecte."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a payable account."
+msgstr "El tercer \"%s\" (%s) no disposa d'un compte a pagar."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a receivable account."
+msgstr "El tercer \"%s\" (%s) no disposa d'un compte a cobrar."
+
+msgctxt "error:shipment.work:"
+msgid "Product \"%s\" must have an account."
+msgstr "El producte \"%s\" no dispossa d'un compte."
 
 msgctxt "error:shipment.work:"
 msgid "Shipment Work \"%s\" must be cancelled before deletion."
@@ -38,25 +62,17 @@ msgstr ""
 "No s'ha definit cap seqüencia pels albarans de treball. Siusplau, "
 "definiu-n'hi una a la configuració de estocs."
 
-msgctxt "field:account.invoice.line,shipment_work:"
-msgid "Shipment Work"
-msgstr "Albarà de treball"
-
-msgctxt "field:sale.line,shipment_work:"
-msgid "Shipment Work"
-msgstr "Albarans de treball"
-
-msgctxt "field:sale.line,shipment_work_product:"
-msgid "Shipment Work Product"
-msgstr "Producte d'albarà de treball"
-
-msgctxt "field:sale.sale,shipment_works:"
-msgid "Sales"
-msgstr "Vendes"
-
 msgctxt "field:shipment.work,company:"
 msgid "Company"
 msgstr "Empresa"
+
+msgctxt "field:shipment.work,cost:"
+msgid "Cost"
+msgstr "Cost"
+
+msgctxt "field:shipment.work,cost_cache:"
+msgid "Cost Cache"
+msgstr "Cost precalculat"
 
 msgctxt "field:shipment.work,create_date:"
 msgid "Create Date"
@@ -65,6 +81,10 @@ msgstr "Data creació"
 msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
 msgstr "Usuari creació"
+
+msgctxt "field:shipment.work,currency_digits:"
+msgid "Currency Digits"
+msgstr "Dígits moneda"
 
 msgctxt "field:shipment.work,customer_location:"
 msgid "Customer Location"
@@ -94,6 +114,10 @@ msgctxt "field:shipment.work,invoice_method:"
 msgid "Invoice method"
 msgstr "Mètode facturació"
 
+msgctxt "field:shipment.work,invoices:"
+msgid "Invoices"
+msgstr "Factures"
+
 msgctxt "field:shipment.work,party:"
 msgid "Party"
 msgstr "Tercer"
@@ -106,9 +130,9 @@ msgctxt "field:shipment.work,planned_date:"
 msgid "Planned Date"
 msgstr "Data estimada"
 
-msgctxt "field:shipment.work,planned_hours:"
-msgid "Planned Hours"
-msgstr "Hores previstes"
+msgctxt "field:shipment.work,planned_duration:"
+msgid "Planned duration"
+msgstr "Duració planificada"
 
 msgctxt "field:shipment.work,products:"
 msgid "Products"
@@ -117,14 +141,6 @@ msgstr "Productes"
 msgctxt "field:shipment.work,rec_name:"
 msgid "Name"
 msgstr "Nom"
-
-msgctxt "field:shipment.work,sale_lines:"
-msgid "Sale Line"
-msgstr "Línia de venta"
-
-msgctxt "field:shipment.work,sales:"
-msgid "Sales"
-msgstr "Vendes"
 
 msgctxt "field:shipment.work,state:"
 msgid "State"
@@ -254,6 +270,11 @@ msgctxt "field:shipment.work.product,id:"
 msgid "ID"
 msgstr "ID"
 
+#, fuzzy
+msgctxt "field:shipment.work.product,invoice_lines:"
+msgid "Invoice Lines"
+msgstr "Línies de factura"
+
 msgctxt "field:shipment.work.product,invoice_method:"
 msgid "Invoice method"
 msgstr "Mètode facturació"
@@ -269,10 +290,6 @@ msgstr "Quantitat"
 msgctxt "field:shipment.work.product,rec_name:"
 msgid "Name"
 msgstr "Nom"
-
-msgctxt "field:shipment.work.product,sale_lines:"
-msgid "Sale Line"
-msgstr "Línia de venta"
 
 msgctxt "field:shipment.work.product,shipment:"
 msgid "Shipment"
@@ -297,6 +314,10 @@ msgstr "Usuari modificació"
 msgctxt "field:stock.configuration,shipment_work_hours_product:"
 msgid "Shipment Work Hours Product"
 msgstr "Producte hores albarà de treball"
+
+msgctxt "field:stock.configuration,shipment_work_journal:"
+msgid "Shipment Work Journal"
+msgstr "Diari albarans de treball"
 
 msgctxt "field:stock.configuration,shipment_work_sequence:"
 msgid "Shipment Work Sequence"
@@ -326,6 +347,10 @@ msgctxt "field:stock.configuration.company,shipment_work_hours_product:"
 msgid "Shipment Work Hours Product"
 msgstr "Producte hores albarà de treball"
 
+msgctxt "field:stock.configuration.company,shipment_work_journal:"
+msgid "Shipment Work Journal"
+msgstr "Diari albarans de treball"
+
 msgctxt "field:stock.configuration.company,shipment_work_sequence:"
 msgid "Shipment Work Sequence"
 msgstr "Seqüencia albarans de treball"
@@ -338,9 +363,14 @@ msgctxt "field:stock.configuration.company,write_uid:"
 msgid "Write User"
 msgstr "Usuari modificació"
 
-msgctxt "field:stock.move,work_shipment:"
+#, fuzzy
+msgctxt "field:stock.move,shipment_work:"
 msgid "Shipment Work"
 msgstr "Albarans de treball"
+
+msgctxt "field:timesheet.line,invoice_line:"
+msgid "Invoice Line"
+msgstr "Línies factura"
 
 msgctxt "field:timesheet.line,invoice_method:"
 msgid "Invoice method"
@@ -356,10 +386,6 @@ msgstr ""
 "El producte utilitzat per facturar les hores de servei dels albarans de "
 "treball"
 
-msgctxt "model:ir.action,name:act_sales_form"
-msgid "Sales"
-msgstr "Vendes"
-
 msgctxt "model:ir.action,name:act_shipment_work"
 msgid "Shipment Work"
 msgstr "Albarans de treball"
@@ -371,10 +397,6 @@ msgstr "Albarà de treball"
 msgctxt "model:ir.action,name:act_shipment_work_product"
 msgid "Shipment Product"
 msgstr "Producte albarà"
-
-msgctxt "model:ir.action,name:act_shipment_work_sales"
-msgid "Shipment Works"
-msgstr "Albarans de treball"
 
 msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
 msgid "All"
