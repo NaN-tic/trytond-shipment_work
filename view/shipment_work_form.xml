@@ -39,6 +39,8 @@
             <field name="payment_term"/>
             <label name="cost"/>
             <field name="cost"/>
+            <label name="revenue"/>
+            <field name="revenue"/>
             <newline/>
             <field name="products" colspan="2"/>
             <field name="timesheet_lines" colspan="2"/>

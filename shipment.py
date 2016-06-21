@@ -169,6 +169,14 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         digits=(16, Eval('currency_digits', 2)),
         readonly=True,
         depends=['currency_digits'])
+    revenue = fields.Function(fields.Numeric('Revenue',
+            digits=(16, Eval('currency_digits', 2)),
+            depends=['currency_digits']), 'get_cost')
+    revenue_cache = fields.Numeric('Cost Cache',
+        digits=(16, Eval('currency_digits', 2)),
+        readonly=True,
+        depends=['currency_digits'])
+
     invoice_method = fields.Selection([
             ('invoice', 'Invoice'),
             ('no_invoice', 'No Invoice'),
@@ -402,18 +410,25 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def get_cost(cls, shipments, names):
+        pool = Pool()
+        Config = pool.get('stock.configuration')
+        config = Config(1)
+        if not config.shipment_work_hours_product:
+            cls.raise_user_error('no_shipment_work_hours_product')
+        product = config.shipment_work_hours_product
 
         result = {}
-        for fname in names:
+        for fname in ['cost', 'revenue']:
             result[fname] = {}
 
         for shipment in shipments:
             if shipment.cost_cache:
-                cost = shipment.cost_cache
-                result['cost'][shipment.id] = cost
+                result['cost'][shipment.id] = shipment.cost_cache
+                result['revenue'][shipment.id] = shipment.revenue_cache
                 continue
 
             cost = Decimal('0.00')
+            revenue = Decimal('0.00')
             # shipment products
             for shipment_product in shipment.products:
                 if not shipment_product.product:
@@ -421,11 +436,22 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 cost += shipment_product.product.cost_price * \
                     Decimal(str(shipment_product.quantity))
 
+                if shipment_product.invoice_method == 'no_invoice':
+                    continue
+
+                revenue += shipment_product.product.list_price * \
+                    Decimal(str(shipment_product.quantity))
+
             # timesheet lines
             for line in shipment.timesheet_lines:
                 cost += line.cost_price * Decimal(str(line.hours))
+                if line.invoice_method == 'no_invoice':
+                    continue
+                revenue += product.list_price * Decimal(str(line.hours))
 
             result['cost'][shipment.id] = cost.quantize(
+                Decimal(str(10.0 ** -2)))
+            result['revenue'][shipment.id] = revenue.quantize(
                 Decimal(str(10.0 ** -2)))
 
         return result
@@ -447,6 +473,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         for shipment in shipments:
             cls.write([shipment], {
                     'cost_cache': shipment.cost,
+                    'revenue_cache': shipment.revenue,
                     })
 
     @classmethod
@@ -454,6 +481,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         for shipment in shipments:
             cls.write([shipment], {
                     'cost_cache': None,
+                    'revenue_cache': None,
                     })
 
     @classmethod
@@ -559,10 +587,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def do_invoice(cls, shipments):
         pool = Pool()
         Invoice = pool.get('account.invoice')
-        TimesheetLine = pool.get('timesheet.line')
 
         invoices_to_create = []
-        invoices = []
         for shipment in shipments:
             invoice_method = shipment.invoice_method
             timesheet_invoice_method = shipment.timesheet_invoice_method
@@ -703,24 +729,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         line.origin = self
         return line
 
-    def get_stock_shipment(self):
-        pool = Pool()
-        ShipmentOut = pool.get('stock.shipment.out')
-        moves = [m for m in self.stock_moves if m.state != 'done']
-        if not moves:
-            return
-        shipment = ShipmentOut()
-        shipment.company = self.work.company
-        shipment.warehouse = self.warehouse
-        shipment.customer = self.party
-        shipment.planned_date = self.planned_date
-        shipment.effective_date = self.done_date
-        shipment.delivery_address = self.party.address_get(type='delivery')
-        shipment.reference = self.work_name
-        shipment.moves = moves
-        shipment.state = 'draft'
-        return shipment
-
 
 class TimesheetLine:
     __name__ = 'timesheet.line'
@@ -736,6 +744,7 @@ class TimesheetLine:
     @staticmethod
     def default_invoice_method():
         return Transaction().context.get('invoice_method', 'invoice')
+
 
 
 class ShipmentWorkProduct(ModelSQL, ModelView):
