@@ -340,7 +340,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def on_change_with_currency_digits(self, name=None):
         Company = Pool().get('company.company')
         company = Company(Transaction().context.get('company'))
-        
+
         if company.currency:
             return company.currency.digits
         return 2
@@ -396,18 +396,12 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         red_sql = reduce_ids(relation.shipment, work_ids)
         return relation.join(line,
                 condition=(relation.work == line.work)
-                ).select(relation.shipment, Sum(line.duration/3600.0),
+                ).select(relation.shipment, Sum(line.duration / 3600.0),
                 where=red_sql,
                 group_by=relation.shipment), line
 
     @classmethod
     def get_cost(cls, shipments, names):
-        pool = Pool()
-        Config = pool.get('stock.configuration')
-        Uom = pool.get('product.uom')
-        ModelData = pool.get('ir.model.data')
-
-        config = Config(1)
 
         result = {}
         for fname in names:
@@ -424,21 +418,15 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             for shipment_product in shipment.products:
                 if not shipment_product.product:
                     continue
-                cost += shipment_product.product.cost_price * Decimal(str(shipment_product.quantity))
+                cost += shipment_product.product.cost_price * \
+                    Decimal(str(shipment_product.quantity))
 
             # timesheet lines
-            duration = datetime.timedelta()
-            for timesheet_line in shipment.timesheet_lines:
-                duration += timesheet_line.duration
+            for line in shipment.timesheet_lines:
+                cost += line.cost_price * Decimal(str(line.hours))
 
-            if config.shipment_work_hours_product:
-                hour = Uom(ModelData.get_id('product', 'uom_hour'))
-                duration = duration.total_seconds() / 60 / 60
-                quantity = Uom.compute_qty(hour, duration,
-                        config.shipment_work_hours_product.default_uom)
-                if quantity:
-                    cost += config.shipment_work_hours_product.cost_price * Decimal(str(quantity))
-            result['cost'][shipment.id] = cost
+            result['cost'][shipment.id] = cost.quantize(
+                Decimal(str(10.0 ** -2)))
 
         return result
 
@@ -559,92 +547,58 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         cls.write([s for s in shipments if not s.done_date], {
                 'done_date': Date.today(),
                 })
-        invoices = list(chain(*[s.invoices for s in shipments]))
-        if invoices:
-            cls.cancel_invoices(invoices)
-            for invoice in invoices:
-                if invoice.state != 'cancel':
-                    cls.raise_user_error('invoice_not_canceled',
-                        (invoice.rec_name))
         cls.restore_cache(shipments)
-
-    @classmethod
-    def cancel_invoices(cls, invoices):
-        Invoice = Pool().get('account.invoice')
-
-        Invoice.draft(invoices)
-        Invoice.cancel(invoices)
 
     @classmethod
     @ModelView.button
     @Workflow.transition('checked')
     def check(cls, shipments):
+        cls.do_invoice(shipments)
+
+    @classmethod
+    def do_invoice(cls, shipments):
         pool = Pool()
-        ShipmentOut = pool.get('stock.shipment.out')
         Invoice = pool.get('account.invoice')
         TimesheetLine = pool.get('timesheet.line')
 
         invoices_to_create = []
-        shipments_to_create = []
+        invoices = []
         for shipment in shipments:
             invoice_method = shipment.invoice_method
             timesheet_invoice_method = shipment.timesheet_invoice_method
-
             lines = []
 
             with Transaction().set_user(0, set_context=True):
                 invoice = shipment.get_account_invoice(invoice_method)
+                invoice.category = shipment.category
 
             # add shipment work products
-            for shipment_product in shipment.products:
+            for product in shipment.products:
                 line = shipment.get_product_invoice_line(
-                        invoice, invoice_method, shipment_product)
+                        invoice, invoice_method, product)
                 if line:
                     lines.append(line)
 
             # add timesheet lines
-            duration = datetime.timedelta()
+            hours = 0
             for timesheet_line in shipment.timesheet_lines:
-                duration += timesheet_line.duration
-            if duration:
-                line = shipment.get_timesheet_invoice_line(
-                            invoice, timesheet_invoice_method, duration)
-                if line:
-                    lines.append(line)
+                hours += timesheet_line.hours
+            if hours:
+                line_hours = shipment.get_timesheet_invoice_line(
+                            invoice, timesheet_invoice_method, hours)
+                if line_hours:
+                    lines.append(line_hours)
 
             if not lines:
                 continue
 
-            # add shipment products + timesheet line in invoice
             invoice.lines = lines
+            invoice.on_change_taxes()
             invoices_to_create.append(invoice._save_values)
 
-            stock_shipment = shipment.get_stock_shipment()
-            if stock_shipment:
-                shipments_to_create.append(stock_shipment._save_values)
-
         if invoices_to_create:
-            invoices = Invoice.create(invoices_to_create)
+            Invoice.create(invoices_to_create)
 
-            # relate timesheet lines to invoice lines
-            for invoice in invoices:
-                timesheet_to_save = []
-                for iline in invoice.lines:
-                    if iline.product and iline.product.type == 'service':
-                        break
-                for shipment in shipments:
-                    for timesheet_line in shipment.timesheet_lines:
-                        timesheet_line.invoice_line = iline
-                        timesheet_to_save.append(timesheet_line)
-                if timesheet_to_save:
-                    TimesheetLine.write(timesheet_to_save, {'invoice_line': iline.id})
-
-        if shipments_to_create:
-            stock_shipments = ShipmentOut.create(shipments_to_create)
-            ShipmentOut.wait(stock_shipments)
-            ShipmentOut.assign(stock_shipments)
-            ShipmentOut.pack(stock_shipments)
-            ShipmentOut.done(stock_shipments)
         cls.store_cache(shipments)
 
     @classmethod
@@ -704,15 +658,20 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         line.product = product
         line.type = 'line'
         line.sequence = 1
-        if line.product:
-            line.on_change_product()
-        if not hasattr(line, 'unit_price'):
+        line.on_change_product()
+
+        if hasattr(line, 'unit_price'):
             line.unit_price = product.list_price
+        if hasattr(line, 'gross_unit_price'):
+            line.unit_price = product.list_price
+
         if not hasattr(line, 'account'):
-            self.raise_user_error('missing_product_account', (product.rec_name,))
+            self.raise_user_error('missing_product_account',
+                (product.rec_name,))
         return line
 
-    def get_product_invoice_line(self, invoice, invoice_method, shipment_product):
+    def get_product_invoice_line(self, invoice, invoice_method,
+            shipment_product):
         if invoice_method == 'no_invoice' or \
                 shipment_product.invoice_method == 'no_invoice' or \
                     not shipment_product.product:
@@ -720,7 +679,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
         product = shipment_product.product
         quantity = shipment_product.quantity
-        
+
         line = self.get_account_invoice_line(invoice, product, quantity)
         line.origin = self
         if shipment_product.description:
@@ -729,25 +688,18 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             line.unit_price = Decimal('0.0')
         return line
 
-    def get_timesheet_invoice_line(self, invoice, invoice_method, duration):
+    def get_timesheet_invoice_line(self, invoice, invoice_method, hours):
         pool = Pool()
         Config = pool.get('stock.configuration')
-        Uom = pool.get('product.uom')
-        ModelData = pool.get('ir.model.data')
 
-        if invoice_method == 'no_invoice':
+        if invoice_method == 'no_invoice' or hours <= Decimal(0):
             return
 
         config = Config(1)
         if not config.shipment_work_hours_product:
             self.raise_user_error('no_shipment_work_hours_product')
         product = config.shipment_work_hours_product
-        hour = Uom(ModelData.get_id('product', 'uom_hour'))
-
-        duration = duration.total_seconds() / 60 / 60
-        quantity = Uom.compute_qty(hour, duration, product.default_uom)
-
-        line = self.get_account_invoice_line(invoice, product, quantity)
+        line = self.get_account_invoice_line(invoice, product, hours)
         line.origin = self
         return line
 
