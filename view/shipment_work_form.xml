@@ -6,6 +6,8 @@
     <field name="party"/>
     <label name="work_name"/>
     <field name="work_name"/>
+    <label name="origin"/>
+    <field name="origin"/>
     <group id="dates" colspan="4"  col="6">
         <label name="planned_date"/>
         <field name="planned_date"/>

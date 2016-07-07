@@ -24,6 +24,7 @@ class ShipmentWorkWorkRelation(ModelSQL):
     work = fields.Many2One('timesheet.work', 'Work', required=True,
         select=True)
 
+
     @classmethod
     def __setup__(cls):
         super(ShipmentWorkWorkRelation, cls).__setup__()
@@ -211,6 +212,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             },
         depends=['customer_location', 'warehouse_output', 'state', 'company'])
 
+    origin = fields.Reference('Origin', selection='get_origin', select=True,
+        states={
+            'readonly': Eval('state') != 'draft',
+            })
+
     @classmethod
     def __setup__(cls):
         super(ShipmentWork, cls).__setup__()
@@ -327,6 +333,21 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         locations = Location.search(cls.warehouse.domain)
         if len(locations) == 1:
             return locations[0].id
+
+    @classmethod
+    def _get_origin(cls):
+        'Return list of Model names for origin Reference'
+        return []
+
+    @classmethod
+    def get_origin(cls):
+        Model = Pool().get('ir.model')
+        models = cls._get_origin()
+        models = Model.search([
+                ('model', 'in', models),
+                ])
+        return [(None, '')] + [(m.model, m.name) for m in models]
+
 
     def get_rec_name(self, name):
         res = self.work_name

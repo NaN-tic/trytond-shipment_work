@@ -9,6 +9,7 @@
     <field name="done_date"/>
     <field name="work_description"/>
     <field name="state"/>
+    <field name="origin"/>
     <button name="pending" string="Pending"/>
     <button name="plan" string="Plan"/>
 </tree>
