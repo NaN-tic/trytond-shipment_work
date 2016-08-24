@@ -2,7 +2,7 @@
 # copyright notices and license terms.
 import datetime
 from decimal import Decimal
-from itertools import izip, chain
+from itertools import izip
 from sql.aggregate import Sum
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields, Unique
@@ -23,7 +23,6 @@ class ShipmentWorkWorkRelation(ModelSQL):
         ondelete='CASCADE', required=True, select=True)
     work = fields.Many2One('timesheet.work', 'Work', required=True,
         select=True)
-
 
     @classmethod
     def __setup__(cls):
@@ -149,7 +148,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('cancel', 'Canceled'),
             ], 'State', readonly=True, select=True)
     invoices = fields.Function(fields.One2Many('account.invoice', None,
-            'Invoices'), 'get_invoices', searcher='search_invoices')
+            'Invoices'),
+        'get_invoices', searcher='search_invoices')
     invoice_lines = fields.One2Many('account.invoice.line', 'origin',
         'Invoice Lines', readonly=True)
     planned_duration = fields.TimeDelta('Planned duration',
@@ -159,20 +159,22 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         },
         depends=['state'])
     total_hours = fields.Function(fields.TimeDelta('Total Hours',
-        'company_work_time'),
+            'company_work_time'),
         'get_total_hours')
     currency_digits = fields.Function(fields.Integer('Currency Digits'),
         'on_change_with_currency_digits')
     cost = fields.Function(fields.Numeric('Cost',
             digits=(16, Eval('currency_digits', 2)),
-            depends=['currency_digits']), 'get_cost')
+            depends=['currency_digits']),
+        'get_cost')
     cost_cache = fields.Numeric('Cost Cache',
         digits=(16, Eval('currency_digits', 2)),
         readonly=True,
         depends=['currency_digits'])
     revenue = fields.Function(fields.Numeric('Revenue',
             digits=(16, Eval('currency_digits', 2)),
-            depends=['currency_digits']), 'get_cost')
+            depends=['currency_digits']),
+        'get_cost')
     revenue_cache = fields.Numeric('Cost Cache',
         digits=(16, Eval('currency_digits', 2)),
         readonly=True,
@@ -193,9 +195,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['checked', 'cancel']),
         }, required=True)
     customer_location = fields.Function(fields.Many2One('stock.location',
-            'Customer Location'), 'on_change_with_customer_location')
+            'Customer Location'),
+        'on_change_with_customer_location')
     warehouse_output = fields.Function(fields.Many2One('stock.location',
-            'Warehouse Output'), 'on_change_with_warehouse_output')
+            'Warehouse Output'),
+        'on_change_with_warehouse_output')
     stock_moves = fields.One2Many('stock.move', 'shipment_work',
         'Stock Moves',
         domain=[
@@ -221,23 +225,25 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def __setup__(cls):
         super(ShipmentWork, cls).__setup__()
         cls._error_messages.update({
-                'delete_cancel': 'Shipment Work "%s" must be cancelled before'
-                    ' deletion.',
-                'invoice_not_canceled': 'Can not mark shipments as done '
-                    'because its related the invoice "%s" can not be canceled.',
-                'missing_shipment_sequence': 'There is no shipment work '
+                'delete_cancel': ('Shipment Work "%s" must be cancelled before'
+                    ' deletion.'),
+                'invoice_not_canceled': ('Can not mark shipments as done '
+                    'because its related the invoice "%s" can not be '
+                    'canceled.'),
+                'missing_shipment_sequence': ('There is no shipment work '
                     'sequence defined. Please define one in stock '
-                    'configuration.',
-                'no_shipment_work_hours_product': 'There is no product '
+                    'configuration.'),
+                'no_shipment_work_hours_product': ('There is no product '
                     'defined to invoice the timesheet lines. Please define one'
-                    ' in stock configuration.',
+                    ' in stock configuration.'),
                 'missing_payment_term': 'A payment term has not been defined.',
-                'missing_account_receivable': 'Party "%s" (%s) must have a '
-                    'receivable account.',
-                'missing_account_payable': 'Party "%s" (%s) must have a '
-                    'payable account.',
+                'missing_account_receivable': (
+                    'Party "%s" (%s) must have a receivable account.'),
+                'missing_account_payable': (
+                    'Party "%s" (%s) must have a payable account.'),
                 'missing_journal': 'A default journal has not been defined.',
-                'missing_address': 'Party "%s" (%s) must have a default address.',
+                'missing_address': (
+                    'Party "%s" (%s) must have a default address.'),
                 'missing_product_account': 'Product "%s" must have an account.'
                 })
         cls._transitions |= set((
@@ -719,9 +725,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     def get_product_invoice_line(self, invoice, invoice_method,
             shipment_product):
-        if invoice_method == 'no_invoice' or \
-                shipment_product.invoice_method == 'no_invoice' or \
-                    not shipment_product.product:
+        if (invoice_method == 'no_invoice' or
+                shipment_product.invoice_method == 'no_invoice' or
+                not shipment_product.product):
             return
 
         product = shipment_product.product
@@ -765,7 +771,6 @@ class TimesheetLine:
     @staticmethod
     def default_invoice_method():
         return Transaction().context.get('invoice_method', 'invoice')
-
 
 
 class ShipmentWorkProduct(ModelSQL, ModelView):
