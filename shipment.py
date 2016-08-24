@@ -413,8 +413,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 })
 
     @classmethod
-    def _get_hours_query(cls, work_ids):
-        'Returns the query to compute hours for works_ids'
+    def _get_duration_query(cls, work_ids):
+        'Returns the query to compute duration for works_ids'
         pool = Pool()
         Line = pool.get('timesheet.line')
         Relation = pool.get('shipment.work-timesheet.work')
@@ -425,7 +425,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         red_sql = reduce_ids(relation.shipment, work_ids)
         return relation.join(line,
                 condition=(relation.work == line.work)
-                ).select(relation.shipment, Sum(line.duration / 3600.0),
+                ).select(relation.shipment, Sum(line.duration),
                 where=red_sql,
                 group_by=relation.shipment), line
 
@@ -484,7 +484,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         work_ids = [w.id for w in works]
         hours = dict.fromkeys(work_ids, datetime.timedelta())
         for sub_ids in grouped_slice(work_ids):
-            query, _ = cls._get_hours_query(sub_ids)
+            query, _ = cls._get_duration_query(sub_ids)
             cursor.execute(*query)
             hours.update(dict(cursor.fetchall()))
         return hours
