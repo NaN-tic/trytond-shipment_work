@@ -82,7 +82,6 @@ msgctxt "field:shipment.work,create_uid:"
 msgid "Create User"
 msgstr "Usuario creación"
 
-#, fuzzy
 msgctxt "field:shipment.work,currency_digits:"
 msgid "Currency Digits"
 msgstr "Decimales de la moneda"
@@ -115,10 +114,13 @@ msgctxt "field:shipment.work,invoice_method:"
 msgid "Invoice method"
 msgstr "Metodo facturación"
 
-#, fuzzy
 msgctxt "field:shipment.work,invoices:"
 msgid "Invoices"
-msgstr "Todas las facturas"
+msgstr "Facturas"
+
+msgctxt "field:shipment.work,origin:"
+msgid "Origin"
+msgstr "Origen"
 
 msgctxt "field:shipment.work,party:"
 msgid "Party"
@@ -143,6 +145,14 @@ msgstr "Productos"
 msgctxt "field:shipment.work,rec_name:"
 msgid "Name"
 msgstr "Nombre"
+
+msgctxt "field:shipment.work,revenue:"
+msgid "Revenue"
+msgstr "Ingresos"
+
+msgctxt "field:shipment.work,revenue_cache:"
+msgid "Cost Cache"
+msgstr "Coste precalculado"
 
 msgctxt "field:shipment.work,state:"
 msgid "State"
@@ -272,7 +282,6 @@ msgctxt "field:shipment.work.product,id:"
 msgid "ID"
 msgstr "ID"
 
-#, fuzzy
 msgctxt "field:shipment.work.product,invoice_lines:"
 msgid "Invoice Lines"
 msgstr "Líneas de factura"
@@ -365,12 +374,10 @@ msgctxt "field:stock.configuration.company,write_uid:"
 msgid "Write User"
 msgstr "Usuario modificación"
 
-#, fuzzy
 msgctxt "field:stock.move,shipment_work:"
 msgid "Shipment Work"
-msgstr "Albaranes de trabajo"
+msgstr "Albarán de trabajo"
 
-#, fuzzy
 msgctxt "field:timesheet.line,invoice_line:"
 msgid "Invoice Line"
 msgstr "Línea de factura"

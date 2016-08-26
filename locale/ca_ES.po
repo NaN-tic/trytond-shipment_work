@@ -118,6 +118,10 @@ msgctxt "field:shipment.work,invoices:"
 msgid "Invoices"
 msgstr "Factures"
 
+msgctxt "field:shipment.work,origin:"
+msgid "Origin"
+msgstr "Origen"
+
 msgctxt "field:shipment.work,party:"
 msgid "Party"
 msgstr "Tercer"
@@ -141,6 +145,14 @@ msgstr "Productes"
 msgctxt "field:shipment.work,rec_name:"
 msgid "Name"
 msgstr "Nom"
+
+msgctxt "field:shipment.work,revenue:"
+msgid "Revenue"
+msgstr "Ingressos"
+
+msgctxt "field:shipment.work,revenue_cache:"
+msgid "Cost Cache"
+msgstr "Cost precalculat"
 
 msgctxt "field:shipment.work,state:"
 msgid "State"
@@ -270,7 +282,6 @@ msgctxt "field:shipment.work.product,id:"
 msgid "ID"
 msgstr "ID"
 
-#, fuzzy
 msgctxt "field:shipment.work.product,invoice_lines:"
 msgid "Invoice Lines"
 msgstr "Línies de factura"
@@ -363,10 +374,9 @@ msgctxt "field:stock.configuration.company,write_uid:"
 msgid "Write User"
 msgstr "Usuari modificació"
 
-#, fuzzy
 msgctxt "field:stock.move,shipment_work:"
 msgid "Shipment Work"
-msgstr "Albarans de treball"
+msgstr "Albarà de treball"
 
 msgctxt "field:timesheet.line,invoice_line:"
 msgid "Invoice Line"
