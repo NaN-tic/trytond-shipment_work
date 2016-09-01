@@ -3,6 +3,7 @@
 import datetime
 from decimal import Decimal
 from itertools import izip
+from sql import Null
 from sql.aggregate import Sum
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields, Unique
@@ -48,16 +49,16 @@ class ShipmentWorkEmployee(ModelSQL):
 class ShipmentWork(Workflow, ModelSQL, ModelView):
     'Shipment Work'
     __name__ = 'shipment.work'
-    _rec_name = 'work_name'
+    _rec_name = 'number'
 
     company = fields.Many2One('company.company', 'Company', required=True,
-        select=True, states={
+        states={
             'readonly': Eval('state') != 'draft',
             },
         depends=['state'])
-    work_name = fields.Function(fields.Char('Code', required=True,
-            readonly=True),
-        'get_work_name', searcher='search_work_name', setter='set_work_name')
+    number = fields.Char("Number", states={
+            'readonly': Eval('state') != 'draft',
+            }, depends=['state'])
     work = fields.One2One('shipment.work-timesheet.work', 'shipment', 'work',
         'Work',
         domain=[('company', '=', Eval('company'))],
@@ -65,7 +66,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state') != 'draft',
             },
         depends=['state', 'company'])
-    party = fields.Many2One('party.party', 'Party', required=True, select=True,
+    party = fields.Many2One('party.party', 'Party', required=True,
         states={
             'readonly': Eval('state') != 'draft',
             },
@@ -146,7 +147,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('done', 'Done'),
             ('checked', 'Checked'),
             ('cancel', 'Canceled'),
-            ], 'State', readonly=True, select=True)
+            ], 'State', readonly=True)
     invoices = fields.Function(fields.One2Many('account.invoice', None,
             'Invoices'),
         'get_invoices', searcher='search_invoices')
@@ -197,29 +198,16 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     customer_location = fields.Function(fields.Many2One('stock.location',
             'Customer Location'),
         'on_change_with_customer_location')
-    warehouse_output = fields.Function(fields.Many2One('stock.location',
-            'Warehouse Output'),
-        'on_change_with_warehouse_output')
-    stock_moves = fields.One2Many('stock.move', 'shipment_work',
-        'Stock Moves',
+    stock_moves = fields.One2Many('stock.move', 'shipment', 'Stock Moves',
         domain=[
-            ('from_location', '=', Eval('warehouse_output')),
+            ('from_location', 'child_of', [Eval('warehouse', -1)], 'parent'),
             ('to_location', '=', Eval('customer_location')),
             ('company', '=', Eval('company')),
-            ],
-        add_remove=[
-            ('state', '=', 'draft'),
-            ('shipment_work', '=', None),
-            ],
-        states={
-            'readonly': Eval('state').in_(['checked', 'cancel']),
-            },
-        depends=['customer_location', 'warehouse_output', 'state', 'company'])
-
-    origin = fields.Reference('Origin', selection='get_origin', select=True,
-        states={
+            ], readonly=True,
+        depends=['warehouse', 'customer_location', 'company'])
+    origin = fields.Reference('Origin', selection='get_origin', states={
             'readonly': Eval('state') != 'draft',
-            })
+            }, depends=['state'])
 
     @classmethod
     def __setup__(cls):
@@ -248,12 +236,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 })
         cls._transitions |= set((
                 ('draft', 'pending'),
-                ('pending', 'draft'),
                 ('pending', 'planned'),
                 ('planned', 'done'),
                 ('done', 'checked'),
-                ('checked', 'done'),
                 ('draft', 'cancel'),
+                ('pending', 'draft'),
                 ('pending', 'cancel'),
                 ('planned', 'cancel'),
                 ('cancel', 'draft'),
@@ -273,7 +260,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                     'icon': 'tryton-go-next',
                     },
                 'done': {
-                    'invisible': ~Eval('state').in_(['planned', 'checked']),
+                    'invisible': Eval('state') != 'planned',
                     'icon': 'tryton-ok',
                     },
                 'check': {
@@ -289,13 +276,21 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def __register__(cls, module_name):
+        pool = Pool()
+        TimesheetWork = pool.get('timesheet.work')
+        ShipmentWorkTimesheetWork = pool.get('shipment.work-timesheet.work')
         TableHandler = backend.get('TableHandler')
-        cursor = Transaction().connection.cursor()
-        table = TableHandler(cls, module_name)
+
         sql_table = cls.__table__()
+        timesheet_work = TimesheetWork.__table__()
+        shipment_work_timesheet_work = ShipmentWorkTimesheetWork.__table__()
+        table = TableHandler(cls, module_name)
+
+        column_not_exists = not table.column_exist('number')
 
         super(ShipmentWork, cls).__register__(module_name)
 
+        cursor = Transaction().connection.cursor()
         # Migration from 3.4: change hours into timedelta duration
         if table.column_exist('planned_hours'):
             cursor.execute(*sql_table.select(
@@ -309,6 +304,17 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                         [duration],
                         where=sql_table.id == id_))
             table.drop_column('planned_hours')
+
+        # Migration from 4.0: add number
+        if column_not_exists:
+            cursor.execute(*sql_table.update(
+                    [sql_table.number],
+                    [timesheet_work.name],
+                    from_=[timesheet_work, shipment_work_timesheet_work],
+                    where=(
+                        (sql_table.id == shipment_work_timesheet_work.shipment)
+                        & (shipment_work_timesheet_work.work
+                            == timesheet_work.id))))
 
     @staticmethod
     def default_state():
@@ -354,9 +360,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 ])
         return [(None, '')] + [(m.model, m.name) for m in models]
 
-
     def get_rec_name(self, name):
-        res = self.work_name
+        res = self.number
         if self.party:
             res += ' - ' + self.party.rec_name
         return res
@@ -365,11 +370,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def on_change_with_customer_location(self, name=None):
         if self.party:
             return self.party.customer_location.id
-
-    @fields.depends('warehouse')
-    def on_change_with_warehouse_output(self, name=None):
-        if self.warehouse:
-            return self.warehouse.output_location.id
 
     @fields.depends('currency')
     def on_change_with_currency_digits(self, name=None):
@@ -388,11 +388,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if not self.payment_term:
             self.payment_term = self.default_payment_term()
 
-    def get_work_name(self, name):
-        if not self.work:
-            return ''
-        return self.work.name
-
     def get_invoices(self, name):
         invoices = set()
         for line in self.invoice_lines:
@@ -406,17 +401,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('products.invoice_lines.invoice',) + tuple(clause[1:]),
             ('timesheet_lines.invoice_lines.invoice',) + tuple(clause[1:]),
             ]
-
-    @classmethod
-    def search_work_name(cls, name, clause):
-        return [('work.name',) + tuple(clause[1:])]
-
-    @classmethod
-    def set_work_name(cls, works, name, value):
-        Work = Pool().get('timesheet.work')
-        Work.write([p.work for p in works if p.work], {
-                'name': value,
-                })
 
     @classmethod
     def _get_duration_query(cls, work_ids):
@@ -521,31 +505,27 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         config = Config(1)
 
         vlist = [x.copy() for x in vlist]
-        to_create = []
+        works_to_create = []
         to_values = []
         all_values = []
         for values in vlist:
-            if not values.get('work'):
+            if not values.get('number'):
                 if not config.shipment_work_sequence:
                     cls.raise_user_error('missing_shipment_sequence')
-                code = values.get('work_name')
-                if not code:
-                    code = Sequence.get_id(config.shipment_work_sequence.id)
-                # We should clear it to avoid calling the setter method
-                if 'work_name' in values:
-                    del values['work_name']
-                to_create.append({
-                        'name': code,
+                values['number'] = Sequence.get_id(
+                    config.shipment_work_sequence.id)
+            if not values.get('work'):
+                works_to_create.append({
+                        'name': values['number'],
                         })
                 to_values.append(values)
             else:
                 all_values.append(values)
 
-        if to_create:
-            works = Work.create(to_create)
+        if works_to_create:
+            works = Work.create(works_to_create)
             for values, work in izip(to_values, works):
                 values['work'] = work.id
-
         return super(ShipmentWork, cls).create(all_values + to_values)
 
     @classmethod
@@ -553,7 +533,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if default is None:
             default = {}
         default['work'] = None
-        default['work_name'] = None
         default['products'] = None
         default['timesheet_lines'] = None
         default['invoice_lines'] = None
@@ -598,7 +577,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def done(cls, shipments):
         pool = Pool()
         Date = pool.get('ir.date')
-
         cls.write([s for s in shipments if not s.done_date], {
                 'done_date': Date.today(),
                 })
@@ -608,7 +586,20 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @ModelView.button
     @Workflow.transition('checked')
     def check(cls, shipments):
+        Move = Pool().get('stock.move')
+
+        # TODO: create moves
+        for shipment in shipments:
+            shipment.create_moves()
+        cls.save(shipments)
+        Move.do([m for s in shipments for m in s.stock_moves])
         cls.do_invoice(shipments)
+
+    def create_moves(self):
+        for shipment_product in self.products:
+            move = shipment_product.get_move()
+            if move:
+                self.stock_moves += (move,)
 
     @classmethod
     def do_invoice(cls, shipments):
@@ -659,7 +650,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @Workflow.transition('cancel')
     def cancel(cls, shipments):
         cls.store_cache(shipments)
-        pass
 
     def get_account_invoice(self, invoice_method):
         pool = Pool()
@@ -819,6 +809,24 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
             return self.unit.digits
         return 2
 
+    def get_move(self):
+        pool = Pool()
+        Move = pool.get('stock.move')
+
+        move = Move()
+        move.product = self.product
+        move.uom = self.unit
+        move.quantity = self.quantity
+        move.unit_price = self.product.list_price
+        move.currency = self.shipment.company.currency
+        move.from_location = self.shipment.warehouse.storage_location
+        move.to_location = self.shipment.customer_location
+        move.effective_date = self.shipment.done_date
+        move.company = self.shipment.company
+        move.origin = self
+        move.state = 'draft'
+        return move
+
     @classmethod
     def copy(cls, products, default=None):
         if default is None:
@@ -830,16 +838,35 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
 class StockMove:
     __name__ = 'stock.move'
     __metaclass__ = PoolMeta
-    shipment_work = fields.Many2One('shipment.work', 'Shipment Work')
 
     @classmethod
     def __register__(cls, module_name):
         TableHandler = backend.get('TableHandler')
-        table = TableHandler(cls, module_name)
+        handler = TableHandler(cls, module_name)
+        table = cls.__table__()
 
         # Migration from 4.0: rename work_shipment into shipment_work
-        if (table.column_exist('work_shipment')
-                and not table.column_exist('number')):
-            table.column_rename('work_shipment', 'shipment_work')
+        if (handler.column_exist('work_shipment')
+                and not handler.column_exist('number')):
+            handler.column_rename('work_shipment', 'shipment_work')
+        if handler.column_exist('shipment_work'):
+            cursor = Transaction().connection.cursor()
+            cursor.execute(*table.update(
+                    [table.shipment],
+                    ['shipment.work,%s' % table.shipment_work],
+                    where=(table.shipment_work != Null)))
+            handler.drop_column('shipment_work')
 
         super(StockMove, cls).__register__(module_name)
+
+    @classmethod
+    def _get_shipment(cls):
+        models = super(StockMove, cls)._get_shipment()
+        models.append('shipment.work')
+        return models
+
+    @classmethod
+    def _get_origin(cls):
+        models = super(StockMove, cls)._get_origin()
+        models.append('shipment.work.product')
+        return models

@@ -146,7 +146,7 @@ Create a shipment work with three lines::
     >>> shipment.work_description = 'Work'
     >>> shipment.party = customer
     >>> shipment.click('pending')
-    >>> shipment.work_name
+    >>> shipment.number
     u'1'
     >>> shipment.state
     u'pending'

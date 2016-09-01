@@ -2,8 +2,8 @@
 <!-- The COPYRIGHT file at the top level of this repository contains the full
      copyright notices and license terms. -->
 <tree string="Shipment Work">
+    <field name="number"/>
     <field name="party"/>
-    <field name="work_name"/>
     <field name="planned_duration"/>
     <field name="planned_date"/>
     <field name="done_date"/>
