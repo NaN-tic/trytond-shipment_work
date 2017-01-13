@@ -593,7 +593,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             shipment.create_moves()
         cls.save(shipments)
         Move.do([m for s in shipments for m in s.stock_moves])
-        cls.do_invoice(shipments)
+        shipments_to_invoice = [x for x in shipments
+            if (x.invoice_method != 'no_invoice' or
+                x.timesheet_invoice_method != 'no_invoice')]
+        cls.do_invoice(shipments_to_invoice)
 
     def create_moves(self):
         for shipment_product in self.products:
