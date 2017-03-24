@@ -212,6 +212,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @classmethod
     def __setup__(cls):
         super(ShipmentWork, cls).__setup__()
+
         cls._error_messages.update({
                 'delete_cancel': ('Shipment Work "%s" must be cancelled before'
                     ' deletion.'),
@@ -532,6 +533,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def copy(cls, shipments, default=None):
         if default is None:
             default = {}
+        default['number'] = None
         default['work'] = None
         default['products'] = None
         default['timesheet_lines'] = None
