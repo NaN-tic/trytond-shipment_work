@@ -1,0 +1,572 @@
+#
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "error:shipment.work-timesheet.work:"
+msgid "The shipment work must be unique."
+msgstr "L'albarà de treball ha de ser únic."
+
+msgctxt "error:shipment.work-timesheet.work:"
+msgid "The work must be unique."
+msgstr "El treball ha de ser únic."
+
+msgctxt "error:shipment.work:"
+msgid "A default journal has not been defined."
+msgstr "S'ha de definir un diari per defecte."
+
+msgctxt "error:shipment.work:"
+msgid "A payment term has not been defined."
+msgstr "S'ha de definir un termini de pagament."
+
+msgctxt "error:shipment.work:"
+msgid ""
+"Can not mark shipments as done because its related the invoice \"%s\" can "
+"not be canceled."
+msgstr ""
+"No es pot canviar l'albarà a realitzat perque les factures \"%s\" no es "
+"poden cancel·lar."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a default address."
+msgstr "El tercer \"%s\" (%s) no dispossa d'una adreça per defecte."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a payable account."
+msgstr "El tercer \"%s\" (%s) no disposa d'un compte a pagar."
+
+msgctxt "error:shipment.work:"
+msgid "Party \"%s\" (%s) must have a receivable account."
+msgstr "El tercer \"%s\" (%s) no disposa d'un compte a cobrar."
+
+msgctxt "error:shipment.work:"
+msgid "Product \"%s\" must have an account."
+msgstr "El producte \"%s\" no dispossa d'un compte."
+
+msgctxt "error:shipment.work:"
+msgid "Shipment Work \"%s\" must be cancelled before deletion."
+msgstr "L'albarà de treball \"%s\" s'ha de cancel·lar abans d'eliminar-lo"
+
+msgctxt "error:shipment.work:"
+msgid ""
+"There is no product defined to invoice the timesheet lines. Please define "
+"one in stock configuration."
+msgstr ""
+"No hi ha cap producte definit per facturar les línies del full de treball. "
+"Si us plau, definiu-n'hi una a la configuració de logística."
+
+msgctxt "error:shipment.work:"
+msgid ""
+"There is no shipment work sequence defined. Please define one in stock "
+"configuration."
+msgstr ""
+"No s'ha definit cap seqüencia pels albarans de treball. Siusplau, "
+"definiu-n'hi una a la configuració de estocs."
+
+msgctxt "field:shipment.work,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:shipment.work,cost:"
+msgid "Cost"
+msgstr "Cost"
+
+msgctxt "field:shipment.work,cost_cache:"
+msgid "Cost Cache"
+msgstr "Cost precalculat"
+
+msgctxt "field:shipment.work,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:shipment.work,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:shipment.work,currency_digits:"
+msgid "Currency Digits"
+msgstr "Dígits moneda"
+
+msgctxt "field:shipment.work,customer_location:"
+msgid "Customer Location"
+msgstr "Ubicació del client"
+
+msgctxt "field:shipment.work,done_date:"
+msgid "Done Date"
+msgstr "Data realització"
+
+msgctxt "field:shipment.work,done_description:"
+msgid "Done Description"
+msgstr "Descripció treball realitzat"
+
+msgctxt "field:shipment.work,employees:"
+msgid "Employees"
+msgstr "Empleats"
+
+msgctxt "field:shipment.work,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:shipment.work,invoice_lines:"
+msgid "Invoice Lines"
+msgstr "Línies de factura"
+
+msgctxt "field:shipment.work,invoice_method:"
+msgid "Invoice method"
+msgstr "Mètode facturació"
+
+msgctxt "field:shipment.work,invoices:"
+msgid "Invoices"
+msgstr "Factures"
+
+msgctxt "field:shipment.work,number:"
+msgid "Number"
+msgstr "Número"
+
+msgctxt "field:shipment.work,origin:"
+msgid "Origin"
+msgstr "Origen"
+
+msgctxt "field:shipment.work,party:"
+msgid "Party"
+msgstr "Tercer"
+
+msgctxt "field:shipment.work,payment_term:"
+msgid "Payment Term"
+msgstr "Termini de pagament"
+
+msgctxt "field:shipment.work,planned_date:"
+msgid "Planned Date"
+msgstr "Data estimada"
+
+msgctxt "field:shipment.work,planned_duration:"
+msgid "Planned duration"
+msgstr "Duració planificada"
+
+msgctxt "field:shipment.work,products:"
+msgid "Products"
+msgstr "Productes"
+
+msgctxt "field:shipment.work,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work,revenue:"
+msgid "Revenue"
+msgstr "Ingressos"
+
+msgctxt "field:shipment.work,revenue_cache:"
+msgid "Cost Cache"
+msgstr "Cost precalculat"
+
+msgctxt "field:shipment.work,state:"
+msgid "State"
+msgstr "Estat"
+
+msgctxt "field:shipment.work,stock_moves:"
+msgid "Stock Moves"
+msgstr "Moviments d'estoc"
+
+msgctxt "field:shipment.work,timesheet_invoice_method:"
+msgid "Timesheet Invoice method"
+msgstr "Mètode de facturació full de treball"
+
+msgctxt "field:shipment.work,timesheet_lines:"
+msgid "Timesheet Lines"
+msgstr "Línies del full de treball"
+
+msgctxt "field:shipment.work,total_hours:"
+msgid "Total Hours"
+msgstr "Hores totals"
+
+msgctxt "field:shipment.work,warehouse:"
+msgid "Warehouse"
+msgstr "Magatzem"
+
+msgctxt "field:shipment.work,work:"
+msgid "Work"
+msgstr "Treball"
+
+msgctxt "field:shipment.work,work_description:"
+msgid "Work Description"
+msgstr "Descripció treball"
+
+msgctxt "field:shipment.work,write_date:"
+msgid "Write Date"
+msgstr "Data modificación"
+
+msgctxt "field:shipment.work,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:shipment.work-company.employee,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:shipment.work-company.employee,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:shipment.work-company.employee,employee:"
+msgid "Employee"
+msgstr "Empleat"
+
+msgctxt "field:shipment.work-company.employee,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:shipment.work-company.employee,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work-company.employee,shipment:"
+msgid "Shipment work"
+msgstr "Albarà de treball"
+
+msgctxt "field:shipment.work-company.employee,write_date:"
+msgid "Write Date"
+msgstr "Data modificación"
+
+msgctxt "field:shipment.work-company.employee,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:shipment.work-timesheet.work,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:shipment.work-timesheet.work,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:shipment.work-timesheet.work,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:shipment.work-timesheet.work,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work-timesheet.work,shipment:"
+msgid "Shipment work"
+msgstr "Albarà de treball"
+
+msgctxt "field:shipment.work-timesheet.work,work:"
+msgid "Work"
+msgstr "Treball"
+
+msgctxt "field:shipment.work-timesheet.work,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:shipment.work-timesheet.work,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:shipment.work.product,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:shipment.work.product,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:shipment.work.product,description:"
+msgid "Description"
+msgstr "Descripció"
+
+msgctxt "field:shipment.work.product,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:shipment.work.product,invoice_lines:"
+msgid "Invoice Lines"
+msgstr "Línies de factura"
+
+msgctxt "field:shipment.work.product,invoice_method:"
+msgid "Invoice method"
+msgstr "Mètode facturació"
+
+msgctxt "field:shipment.work.product,product:"
+msgid "Product"
+msgstr "Productes"
+
+msgctxt "field:shipment.work.product,quantity:"
+msgid "Quantity"
+msgstr "Quantitat"
+
+msgctxt "field:shipment.work.product,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:shipment.work.product,shipment:"
+msgid "Shipment"
+msgstr "Albarà"
+
+msgctxt "field:shipment.work.product,unit:"
+msgid "Unit"
+msgstr "Unitat"
+
+msgctxt "field:shipment.work.product,unit_digits:"
+msgid "Unit Digits"
+msgstr "Decimals unitat"
+
+msgctxt "field:shipment.work.product,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:shipment.work.product,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:stock.configuration,shipment_work_hours_product:"
+msgid "Shipment Work Hours Product"
+msgstr "Producte hores albarà de treball"
+
+msgctxt "field:stock.configuration,shipment_work_journal:"
+msgid "Shipment Work Journal"
+msgstr "Diari albarans de treball"
+
+msgctxt "field:stock.configuration,shipment_work_sequence:"
+msgid "Shipment Work Sequence"
+msgstr "Seqüencia albarans de treball"
+
+msgctxt "field:stock.configuration.company,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:stock.configuration.company,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:stock.configuration.company,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:stock.configuration.company,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:stock.configuration.company,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:stock.configuration.company,shipment_work_hours_product:"
+msgid "Shipment Work Hours Product"
+msgstr "Producte hores albarà de treball"
+
+msgctxt "field:stock.configuration.company,shipment_work_journal:"
+msgid "Shipment Work Journal"
+msgstr "Diari albarans de treball"
+
+msgctxt "field:stock.configuration.company,shipment_work_sequence:"
+msgid "Shipment Work Sequence"
+msgstr "Seqüencia albarans de treball"
+
+msgctxt "field:stock.configuration.company,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:stock.configuration.company,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:timesheet.line,invoice_line:"
+msgid "Invoice Line"
+msgstr "Línies factura"
+
+msgctxt "field:timesheet.line,invoice_method:"
+msgid "Invoice method"
+msgstr "Mètode facturació"
+
+msgctxt "field:timesheet.line,shipment:"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "help:stock.configuration,shipment_work_hours_product:"
+msgid "The product used to invoice the service hours of a shipment"
+msgstr ""
+"El producte utilitzat per facturar les hores de servei dels albarans de "
+"treball"
+
+msgctxt "model:ir.action,name:act_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarans de treball"
+
+msgctxt "model:ir.action,name:act_shipment_work_calendar"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "model:ir.action,name:act_shipment_work_product"
+msgid "Shipment Product"
+msgstr "Producte albarà"
+
+msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_all"
+msgid "All"
+msgstr "Tots"
+
+msgctxt "model:ir.action.act_window.domain,name:act_shipment_work_domain_done"
+msgid "Done"
+msgstr "Realitzat"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_draft"
+msgid "Draft"
+msgstr "Esborrany"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_pending"
+msgid "Pending"
+msgstr "Pendent"
+
+msgctxt ""
+"model:ir.action.act_window.domain,name:act_shipment_work_domain_planned"
+msgid "Planned"
+msgstr "Planificat"
+
+msgctxt "model:ir.sequence,name:sequence_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarans de treball"
+
+msgctxt "model:ir.sequence.type,name:sequence_type_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarans de treball"
+
+msgctxt "model:ir.ui.menu,name:menu_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarans de treball"
+
+msgctxt "model:ir.ui.menu,name:menu_shipment_work_calendar"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "model:res.group,name:group_shipment_work"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "model:res.group,name:group_shipment_work_admin"
+msgid "Shipment Work Administration"
+msgstr "Administració d'albarans de treball"
+
+msgctxt "model:shipment.work,name:"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "model:shipment.work-company.employee,name:"
+msgid "ShipmentWork - Employee"
+msgstr "Albarà de treball - Empleat"
+
+msgctxt "model:shipment.work-timesheet.work,name:"
+msgid "ShipmentWork - Work"
+msgstr "Albarà de treball - Treball"
+
+msgctxt "model:shipment.work.product,name:"
+msgid "Shipment Product"
+msgstr "Producte albarà"
+
+msgctxt "model:stock.configuration.company,name:"
+msgid "Stock Configuration per Company"
+msgstr "Configuració de estocs per empresa"
+
+msgctxt "selection:shipment.work,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Canceled"
+msgstr "Cancel·lat"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Checked"
+msgstr "Revisat"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Done"
+msgstr "Realitzat"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Draft"
+msgstr "Esborrany"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Pending"
+msgstr "Pendent"
+
+msgctxt "selection:shipment.work,state:"
+msgid "Planned"
+msgstr "Planificat"
+
+msgctxt "selection:shipment.work,timesheet_invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work,timesheet_invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
+msgctxt "selection:shipment.work.product,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:shipment.work.product,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
+msgctxt "selection:timesheet.line,invoice_method:"
+msgid "Invoice"
+msgstr "Facturar"
+
+msgctxt "selection:timesheet.line,invoice_method:"
+msgid "No Invoice"
+msgstr "No facturar"
+
+msgctxt "view:shipment.work.product:"
+msgid "Shipment Product"
+msgstr "Producte albarà"
+
+msgctxt "view:shipment.work:"
+msgid "Cancel"
+msgstr "Cancel·lat"
+
+msgctxt "view:shipment.work:"
+msgid "Check"
+msgstr "Revisat"
+
+msgctxt "view:shipment.work:"
+msgid "Costs"
+msgstr "Costos"
+
+msgctxt "view:shipment.work:"
+msgid "Done"
+msgstr "Realitzat"
+
+msgctxt "view:shipment.work:"
+msgid "Draft"
+msgstr "Esborrany"
+
+msgctxt "view:shipment.work:"
+msgid "General"
+msgstr "General"
+
+msgctxt "view:shipment.work:"
+msgid "Have you checked all fields? This action can not be undone."
+msgstr "Has revisat tots els camps? Aquesta acció no es pot desfer."
+
+msgctxt "view:shipment.work:"
+msgid "Pending"
+msgstr "Pendent"
+
+msgctxt "view:shipment.work:"
+msgid "Plan"
+msgstr "Planificar"
+
+msgctxt "view:shipment.work:"
+msgid "Shipment Work"
+msgstr "Albarà de treball"
+
+msgctxt "view:shipment.work:"
+msgid "Shipment Works"
+msgstr "Albarans de treball"

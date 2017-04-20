@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tree string="Shipment Work">
+    <field name="number"/>
+    <field name="party"/>
+    <field name="planned_duration"/>
+    <field name="planned_date"/>
+    <field name="done_date"/>
+    <field name="work_description"/>
+    <field name="state"/>
+    <field name="origin"/>
+    <button name="pending" string="Pending"/>
+    <button name="plan" string="Plan"/>
+</tree>

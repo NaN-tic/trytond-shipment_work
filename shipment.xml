@@ -1,0 +1,348 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="res.group" id="group_shipment_work">
+            <field name="name">Shipment Work</field>
+        </record>
+        <record model="res.group" id="group_shipment_work_admin">
+            <field name="name">Shipment Work Administration</field>
+        </record>
+        <record model="res.user-res.group" id="user_admin_group_shipment_work">
+            <field name="user" ref="res.user_admin"/>
+            <field name="group" ref="group_shipment_work"/>
+        </record>
+        <record model="res.user-res.group" id="user_trigger_group_shipment_work">
+            <field name="user" ref="res.user_trigger"/>
+            <field name="group" ref="group_shipment_work"/>
+        </record>
+        <record model="res.user-res.group"
+                id="user_admin_group_shipment_work_admin">
+            <field name="user" ref="res.user_admin"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+        </record>
+        <record model="res.user-res.group"
+                id="user_trigger_group_shipment_work_admin">
+            <field name="user" ref="res.user_trigger"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+        </record>
+        <record model="ir.ui.view" id="timesheet_line_view_form">
+            <field name="model">timesheet.line</field>
+            <field name="name">timesheet_line_form</field>
+            <field name="inherit" ref="timesheet.line_view_form"/>
+        </record>
+        <record model="ir.ui.view" id="timesheet_line_view_tree">
+            <field name="model">timesheet.line</field>
+            <field name="name">timesheet_line_tree</field>
+            <field name="inherit" ref="timesheet.line_view_tree"/>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_form">
+            <field name="model">shipment.work</field>
+            <field name="type">form</field>
+            <field name="name">shipment_work_form</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_list">
+            <field name="model">shipment.work</field>
+            <field name="type">tree</field>
+            <field name="name">shipment_work_list</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_view_calendar">
+            <field name="model">shipment.work</field>
+            <field name="type">calendar</field>
+            <field name="name">shipment_work_calendar</field>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="res_model">shipment.work</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_view_list"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_view_form"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_draft">
+            <field name="name">Draft</field>
+            <field name="sequence" eval="10"/>
+            <field name="domain" eval="[('state', '=', 'draft')]" pyson="1"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_pending">
+            <field name="name">Pending</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain" eval="[('state', '=', 'pending')]" pyson="1"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_planned">
+            <field name="name">Planned</field>
+            <field name="sequence" eval="30"/>
+            <field name="domain" eval="[('state', '=', 'planned')]" pyson="1" />
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_done">
+            <field name="name">Done</field>
+            <field name="sequence" eval="40"/>
+            <field name="domain" eval="[('state', '=', 'done')]" pyson="1"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window.domain" id="act_shipment_work_domain_all">
+            <field name="name">All</field>
+            <field name="sequence" eval="9999"/>
+            <field name="act_window" ref="act_shipment_work"/>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work_calendar">
+            <field name="name">Shipment Work</field>
+            <field name="res_model">shipment.work</field>
+            <field name="domain" eval="[('state', 'not in', ('cancel', 'done', 'checked'))]" pyson="1"/>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_shipment_work_calendar_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_view_calendar"/>
+            <field name="act_window" ref="act_shipment_work_calendar"/>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_shipment_work_calendar_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_view_form"/>
+            <field name="act_window" ref="act_shipment_work_calendar"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work">
+            <field name="model" search="[('model', '=', 'shipment.work')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_user">
+            <field name="model" search="[('model', '=', 'shipment.work')]"/>
+            <field name="group" ref="group_shipment_work"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_shipment_work_invoice_method">
+            <field name="field" search="[('model.model', '=', 'shipment.work'), ('name', '=', 'invoice_method')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_shipment_work_invoice_method_admin">
+            <field name="field" search="[('model.model', '=', 'shipment.work'), ('name', '=', 'invoice_method')]"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_shipment_work_timesheet_invoice_method">
+            <field name="field" search="[('model.model', '=', 'shipment.work'), ('name', '=', 'timesheet_invoice_method')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_timesheet_work_user">
+            <field name="model" search="[('model', '=', 'timesheet.work')]"/>
+            <field name="group" ref="group_shipment_work"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_shipment_work_timesheet_invoice_method_admin">
+            <field name="field" search="[('model.model', '=', 'shipment.work'), ('name', '=', 'timesheet_invoice_method')]"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.button" id="shipment_work_check_button">
+            <field name="name">check</field>
+            <field name="model" search="[('model', '=', 'shipment.work')]"/>
+        </record>
+        <record model="ir.model.button-res.group"
+            id="shipment_work_check_button_group_admin">
+            <field name="button" ref="shipment_work_check_button"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_product_view_form">
+            <field name="model">shipment.work.product</field>
+            <field name="type">form</field>
+            <field name="name">shipment_work_product_form</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_work_product_view_list">
+            <field name="model">shipment.work.product</field>
+            <field name="type">tree</field>
+            <field name="name">shipment_work_product_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work_product">
+            <field name="name">Shipment Product</field>
+            <field name="res_model">shipment.work.product</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_product_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="shipment_work_product_view_list"/>
+            <field name="act_window" ref="act_shipment_work_product"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_shipment_work_product_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="shipment_work_product_view_form"/>
+            <field name="act_window" ref="act_shipment_work_product"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_product">
+            <field name="model" search="[('model', '=', 'shipment.work.product')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_shipment_work_product_user">
+            <field name="model" search="[('model', '=', 'shipment.work.product')]"/>
+            <field name="group" ref="group_shipment_work"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+<!--
+        <record model="ir.model.field.access"
+                id="access_shipment_work_product_invoice_method">
+            <field name="field" search="[('model.model', '=', 'shipment.work.product'), ('name', '=', 'invoice_method')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_shipment_work_product_invoice_method_admin">
+            <field name="field" search="[('model.model', '=', 'shipment.work.product'), ('name', '=', 'invoice_method')]"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+-->
+<!--
+        <record model="ir.model.field.access"
+                id="access_timesheet_line_invoice_method">
+            <field name="field" search="[('model.model', '=', 'timesheet.line'), ('name', '=', 'invoice_method')]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.field.access"
+                id="access_timesheet_line_invoice_method_admin">
+            <field name="field" search="[('model.model', '=', 'timesheet.line'), ('name', '=', 'invoice_method')]"/>
+            <field name="group" ref="group_shipment_work_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+-->
+<!--
+        <record model="ir.action.act_window" id="act_sales_form">
+            <field name="name">Sales</field>
+            <field name="res_model">sale.sale</field>
+            <field name="domain" eval="[('shipment_works', 'in', Eval('active_ids', []))]"  pyson="1"/>
+        </record>
+        <record model="ir.action.keyword" id="act_open_sales_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">shipment.work,-1</field>
+            <field name="action" ref="act_sales_form"/>
+        </record>
+        <record model="ir.action.act_window" id="act_shipment_work_sales">
+            <field name="name">Shipment Works</field>
+            <field name="res_model">shipment.work</field>
+            <field name="domain" eval="[('sales', 'in',  Eval('active_ids'))]" pyson="1"/>
+        </record>
+        <record model="ir.action.keyword" id="act_shipment_work_sales_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">sale.sale,-1</field>
+            <field name="action" ref="act_shipment_work_sales"/>
+        </record>
+        <record model="ir.action-res.group" id="act_sales_form-group_sale">
+            <field name="action" ref="act_sales_form"/>
+            <field name="group" ref="sale.group_sale"/>
+        </record>
+-->
+        <record model="ir.sequence.type" id="sequence_type_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="code">shipment.work</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_shipment_work_group_admin">
+            <field name="sequence_type" ref="sequence_type_shipment_work"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+
+        <record model="ir.sequence" id="sequence_shipment_work">
+            <field name="name">Shipment Work</field>
+            <field name="code">shipment.work</field>
+        </record>
+
+        <!-- Menus -->
+        <menuitem id="menu_shipment_work" action="act_shipment_work"
+            sequence="35" parent="stock.menu_stock" />
+
+          <record model="ir.ui.menu-res.group" id="menu_shipment_work_group_shipment_work">
+            <field name="menu" ref="menu_shipment_work"/>
+            <field name="group" ref="group_shipment_work"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_stock_group_shipment_work">
+            <field name="menu" ref="stock.menu_stock"/>
+            <field name="group" ref="group_shipment_work"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_inventory_group_stock">
+            <field name="menu" ref="stock.menu_inventory_form"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_location_group_stock">
+            <field name="menu" ref="stock.menu_location_tree"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_shipment_in_group_stock">
+            <field name="menu" ref="stock.menu_shipment_in_form"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_shipment_out_group_stock">
+            <field name="menu" ref="stock.menu_shipment_out_form"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+
+          <record model="ir.ui.menu-res.group" id="menu_shipment_internal_group_stock">
+            <field name="menu" ref="stock.menu_shipment_internal_form"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+
+        <menuitem parent="menu_shipment_work" sequence="10"
+            action="act_shipment_work_calendar"
+            id="menu_shipment_work_calendar"/>
+    </data>
+    <data depends="stock_supply">
+          <record model="ir.ui.menu-res.group" id="menu_order_point_group_stock">
+            <field name="menu" ref="stock_supply.menu_order_point_form"/>
+            <field name="group" ref="stock.group_stock"/>
+          </record>
+    </data>
+</tryton>
