@@ -307,6 +307,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             table.drop_column('planned_hours')
 
         # Migration from 4.0: add number
+        # TODO: Remove after upgrade 4.0 because can't install the module
         if column_not_exists:
             cursor.execute(*sql_table.update(
                     [sql_table.number],
