@@ -624,6 +624,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
             # add shipment work products
             for product in shipment.products:
+                if product.invoice_method == 'no_invoice':
+                    continue
                 line = shipment.get_product_invoice_line(
                         invoice, invoice_method, product)
                 if line:
@@ -632,6 +634,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             # add timesheet lines
             hours = 0
             for timesheet_line in shipment.timesheet_lines:
+                if timesheet_line.invoice_method == 'no_invoice':
+                    continue
                 hours += timesheet_line.hours
             if hours:
                 line_hours = shipment.get_timesheet_invoice_line(
