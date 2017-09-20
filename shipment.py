@@ -3,7 +3,7 @@
 import datetime
 from decimal import Decimal
 from itertools import izip
-from sql import Null
+from sql import Null, Union
 from sql.aggregate import Sum
 
 from trytond.model import Workflow, ModelSQL, ModelView, fields, Unique
@@ -12,9 +12,10 @@ from trytond.pyson import Eval, If, Bool
 from trytond.transaction import Transaction
 from trytond.tools import grouped_slice, reduce_ids
 from trytond import backend
+from collections import defaultdict
 
 __all__ = ['ShipmentWorkWorkRelation', 'ShipmentWorkEmployee', 'ShipmentWork',
-    'TimesheetLine', 'ShipmentWorkProduct', 'StockMove']
+    'TimesheetLine', 'ShipmentWorkProduct', 'StockMove', 'Sale', 'SaleLine']
 
 
 class ShipmentWorkWorkRelation(ModelSQL):
@@ -148,11 +149,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             ('checked', 'Checked'),
             ('cancel', 'Canceled'),
             ], 'State', readonly=True)
-    invoices = fields.Function(fields.One2Many('account.invoice', None,
-            'Invoices'),
-        'get_invoices', searcher='search_invoices')
-    invoice_lines = fields.One2Many('account.invoice.line', 'origin',
-        'Invoice Lines', readonly=True)
+
     planned_duration = fields.TimeDelta('Planned duration',
         'company_work_time',
         states={
@@ -208,6 +205,11 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     origin = fields.Reference('Origin', selection='get_origin', states={
             'readonly': Eval('state') != 'draft',
             }, depends=['state'])
+
+    sales = fields.Function(fields.One2Many('sale.sale', None,
+            'Sales'), 'get_sales', searcher='search_sales')
+    sale_lines = fields.One2Many('sale.line', 'shipment_work',
+        'Sale Line', readonly=True)
 
     @classmethod
     def __setup__(cls):
@@ -367,6 +369,23 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if self.party:
             res += ' - ' + self.party.rec_name
         return res
+
+    def get_sales(self, name):
+        pool = Pool()
+        Line = pool.get('sale.line')
+        lines = Line.search(['OR',
+                [('shipment_work_product', 'in', self.products)],
+                [('shipment_work', '=', self.id)],
+                ])
+        return list(set([l.sale.id for l in lines]))
+
+    @classmethod
+    def search_sales(cls, name, clause):
+        return ['OR',
+            [tuple(('products.sale_lines.sale',)) + tuple(clause[1:])],
+            [tuple(('sale_lines.sale',)) + tuple(clause[1:])],
+            ]
+
 
     @fields.depends('party')
     def on_change_with_customer_location(self, name=None):
@@ -590,8 +609,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @Workflow.transition('checked')
     def check(cls, shipments):
         Move = Pool().get('stock.move')
-
-        # TODO: create moves
         for shipment in shipments:
             shipment.create_moves()
         cls.save(shipments)
@@ -599,7 +616,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         shipments_to_invoice = [x for x in shipments
             if (x.invoice_method != 'no_invoice' or
                 x.timesheet_invoice_method != 'no_invoice')]
-        cls.do_invoice(shipments_to_invoice)
+
+        cls.do_sale(shipments_to_invoice)
 
     def create_moves(self):
         for shipment_product in self.products:
@@ -607,53 +625,48 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             if move:
                 self.stock_moves += (move,)
 
-    @classmethod
-    def do_invoice(cls, shipments):
+    def get_sale(self, invoice_method):
         pool = Pool()
-        Invoice = pool.get('account.invoice')
+        Sale = pool.get('sale.sale')
+        sale = Sale()
+        sale.company = self.work.company
+        sale.currency = self.work.company.currency
+        sale.warehouse = self.warehouse
+        sale.payment_term = self.payment_term
+        if not sale.payment_term:
+            sale.payment_term = self.party.customer_payment_term
+        sale.party = self.party
+        sale.sale_date = self.done_date
+        sale.invoice_address = self.party.address_get(type='invoice')
+        sale.shipment_address = self.party.address_get(type='delivery')
+        if invoice_method == 'invoice':
+            sale.invoice_method = 'order'
+        else:
+            sale.invoice_method = 'manual'
+        return sale
 
-        invoices_to_create = []
+    @classmethod
+    def do_sale(cls, shipments):
+        pool = Pool()
+        Sale = pool.get('sale.sale')
+        sales_to_create = []
         for shipment in shipments:
-            invoice_method = shipment.invoice_method
-            timesheet_invoice_method = shipment.timesheet_invoice_method
-            lines = []
-
-            with Transaction().set_user(0, set_context=True):
-                invoice = shipment.get_account_invoice(invoice_method)
-                invoice.category = shipment.category
-
-            # add shipment work products
-            for product in shipment.products:
-                if product.invoice_method == 'no_invoice':
+            for invoice_method, _ in cls.invoice_method.selection:
+                lines = []
+                with Transaction().set_user(0, set_context=True):
+                    sale = shipment.get_sale(invoice_method)
+                for product in shipment.products:
+                    line = product.get_sale_line(sale, invoice_method)
+                    if line:
+                        lines.append(line)
+                lines += shipment.get_timesheet_sale_lines(invoice_method)
+                if not lines:
                     continue
-                line = shipment.get_product_invoice_line(
-                        invoice, invoice_method, product)
-                if line:
-                    lines.append(line)
+                sale.lines = lines
+                sales_to_create.append(sale._save_values)
+        if sales_to_create:
+            Sale.create(sales_to_create)
 
-            # add timesheet lines
-            hours = 0
-            for timesheet_line in shipment.timesheet_lines:
-                if timesheet_line.invoice_method == 'no_invoice':
-                    continue
-                hours += timesheet_line.hours
-            if hours:
-                line_hours = shipment.get_timesheet_invoice_line(
-                            invoice, timesheet_invoice_method, hours)
-                if line_hours:
-                    lines.append(line_hours)
-
-            if not lines:
-                continue
-
-            invoice.lines = lines
-            invoice.on_change_taxes()
-            invoices_to_create.append(invoice._save_values)
-
-        if invoices_to_create:
-            Invoice.create(invoices_to_create)
-
-        cls.store_cache(shipments)
 
     @classmethod
     @ModelView.button
@@ -661,100 +674,49 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     def cancel(cls, shipments):
         cls.store_cache(shipments)
 
-    def get_account_invoice(self, invoice_method):
+    @classmethod
+    def _get_hours_query(cls, work_ids):
+        'Returns the query to compute hours for works_ids'
         pool = Pool()
-        Invoice = pool.get('account.invoice')
-        Config = pool.get('stock.configuration')
-        AccountConfig = pool.get('account.configuration')
+        Line = pool.get('timesheet.line')
+        Relation = pool.get('shipment.work-timesheet.work')
+        relation = Relation.__table__()
+        line = Line.__table__()
+        red_sql = reduce_ids(relation.shipment, work_ids)
+        return relation.join(line,
+                condition=(relation.work == line.work)
+                ).select(relation.shipment, Sum(line.duration),
+                where=red_sql,
+                group_by=relation.shipment), line
 
-        config = Config(1)
-
-        journal = config.shipment_work_journal
-        if not journal:
-            self.raise_user_error('missing_journal')
-
-        party = self.party
-        if party.account_receivable:
-            account = party.account_receivable
-        else:
-            account_config = AccountConfig(1)
-            if not account_config.default_account_receivable:
-                self.raise_user_error('missing_account_receivable',
-                    error_args=(party.name, party))
-            account = account_config.default_account_receivable
-
-        invoice = Invoice()
-        invoice.type = 'out'
-        invoice.company = self.company
-        invoice.journal = journal
-        invoice.account = account
-        invoice.currency = self.company.currency
-        invoice.party = party
-        invoice.on_change_party()
-        invoice.payment_term = self.payment_term
-        invoice.invoice_date = self.done_date
-        if not invoice.invoice_address:
-            invoice.invoice_address = invoice.party.address_get()
-        if not invoice.invoice_address:
-            self.raise_user_error('missing_address',
-                error_args=(party.name, party))
-        return invoice
-
-    def get_account_invoice_line(self, invoice, product, quantity):
-        InvoiceLine = Pool().get('account.invoice.line')
-
-        line = InvoiceLine()
-        line.invoice = invoice
-        line.currency = self.company.currency
-        line.party = invoice.party
-        line.quantity = quantity
-        line.product = product
-        line.type = 'line'
-        line.sequence = 1
-        line.on_change_product()
-
-        if hasattr(line, 'unit_price'):
-            line.unit_price = product.list_price
-        if hasattr(line, 'gross_unit_price'):
-            line.unit_price = product.list_price
-
-        if not hasattr(line, 'account'):
-            self.raise_user_error('missing_product_account',
-                (product.rec_name,))
-        return line
-
-    def get_product_invoice_line(self, invoice, invoice_method,
-            shipment_product):
-        if (invoice_method == 'no_invoice' or
-                shipment_product.invoice_method == 'no_invoice' or
-                not shipment_product.product):
-            return
-
-        product = shipment_product.product
-        quantity = shipment_product.quantity
-
-        line = self.get_account_invoice_line(invoice, product, quantity)
-        line.origin = self
-        if shipment_product.description:
-            line.description = shipment_product.description
-        if not line.product:
-            line.unit_price = Decimal('0.0')
-        return line
-
-    def get_timesheet_invoice_line(self, invoice, invoice_method, hours):
+    def get_timesheet_sale_lines(self, invoice_method):
         pool = Pool()
+        SaleLine = pool.get('sale.line')
         Config = pool.get('stock.configuration')
+        cursor = Transaction().connection.cursor()
+        lines = []
+        if invoice_method == 'no_invoice':
+            return lines
 
-        if invoice_method == 'no_invoice' or hours <= Decimal(0):
-            return
+        query, table = self._get_hours_query([self.id])
+        query.where &= table.invoice_method == invoice_method
+        cursor.execute(*query)
+        hours_to_invoice = dict(cursor.fetchall()).get(self.id)
+        if not hours_to_invoice:
+            return lines
 
         config = Config(1)
         if not config.shipment_work_hours_product:
             self.raise_user_error('no_shipment_work_hours_product')
-        product = config.shipment_work_hours_product
-        line = self.get_account_invoice_line(invoice, product, hours)
-        line.origin = self
-        return line
+        sale_line = SaleLine()
+        sale_line.shipment_work = self
+        sale_line.quantity = Decimal(str(hours_to_invoice.total_seconds()/3600)
+            ).quantize(Decimal(str(10.0 ** -2)))
+
+        sale_line.product = config.shipment_work_hours_product
+        sale_line.on_change_product()
+        sale_line.shipment_work = self
+        return [sale_line]
 
 
 class TimesheetLine:
@@ -819,6 +781,31 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
             return self.unit.digits
         return 2
 
+    def get_sale_line(self, sale, invoice_method):
+        pool = Pool()
+        if invoice_method != self.invoice_method:
+            return
+        SaleLine = pool.get('sale.line')
+        sale_line = SaleLine()
+        sale_line.sale = sale
+        sale_line.quantity = self.quantity
+        sale_line.unit = self.unit
+        sale_line.description = self.description
+        if self.product:
+            sale_line.product = self.product
+            for key in SaleLine.product.on_change:
+                line = sale_line
+                if '_parent_' in key:
+                    parent, key = key.split('.')
+                    line = getattr(sale_line, parent[8:])
+                if not hasattr(line, key):
+                    setattr(line, key, None)
+            sale_line.on_change_product()
+        else:
+            sale_line.unit_price = Decimal('0.0')
+        sale_line.shipment_work_product = self
+        return sale_line
+
     def get_move(self):
         pool = Pool()
         Move = pool.get('stock.move')
@@ -843,6 +830,55 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
             default = {}
         default['invoice_lines'] = None
         return super(ShipmentWorkProduct, cls).copy(products, default=default)
+
+
+class Sale:
+    __name__ = 'sale.sale'
+    __metaclass__ = PoolMeta
+
+    shipment_works = fields.Function(fields.One2Many('shipment.work', None,
+            'Sales'), 'get_shipment_work', searcher='search_shipment_works')
+
+    @classmethod
+    def get_shipment_work(cls, sales, name):
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+        WorkProduct = pool.get('shipment.work.product')
+        table = SaleLine.__table__()
+        line = SaleLine.__table__()
+        work_product = WorkProduct.__table__()
+        result = defaultdict(list)
+        cursor = Transaction().cursor
+        for sub_ids in grouped_slice([s.id for s in sales]):
+            sub_ids = list(sub_ids)
+            direct = table.select(table.sale,
+                table.shipment_work.as_('shipment'),
+                where=(table.shipment_work != Null) &
+                reduce_ids(table.sale, sub_ids))
+            indirect = line.join(work_product,
+                condition=(work_product.id == line.shipment_work_product)
+                ).select(line.sale, work_product.shipment.as_('shipment'),
+                where=reduce_ids(line.sale, sub_ids))
+            cursor.execute(*Union(direct, indirect))
+            for sale, shipment in cursor.fetchall():
+                result[sale].append(shipment)
+        return result
+
+    @classmethod
+    def search_shipment_works(cls, name, clause):
+        product_clause = [('lines.shipment_work_product.shipment',) +
+            tuple(clause[1:])]
+        direct_clause = [('lines.shipment_work',) + tuple(clause[1:])]
+        return ['OR', product_clause, direct_clause]
+
+
+class SaleLine:
+    __name__ = 'sale.line'
+    __metaclass__ = PoolMeta
+    shipment_work_product = fields.Many2One('shipment.work.product',
+        'Shipment Work Product')
+    shipment_work = fields.Many2One('shipment.work',
+        'Shipment Work')
 
 
 class StockMove:

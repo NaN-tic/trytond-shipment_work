@@ -50,10 +50,11 @@
         <page name="stock_moves">
             <field name="stock_moves"/>
         </page>
-        <page name="invoices">
-            <field name="invoices" colspan="4"/>
-            <field name="invoice_lines" colspan="4"/>
+        <page name="sales">
+            <field name="sales" colspan="4"/>
+            <field name="sale_lines" colspan="4"/>
         </page>
+
     </notebook>
     <group id="state_buttons" colspan="4">
         <label name="state"/>
