@@ -11,6 +11,8 @@ def register():
         configuration.Configuration,
         configuration.ConfigurationCompany,
         invoice.InvoiceLine,
+        shipment.Sale,
+        shipment.SaleLine,
         shipment.ShipmentWork,
         shipment.ShipmentWorkWorkRelation,
         shipment.ShipmentWorkProduct,
