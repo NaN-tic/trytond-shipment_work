@@ -175,7 +175,6 @@ Create a shipment work with three lines::
     >>> line.quantity = 2.0
     >>> warehouse, = Location.find([('type', '=', 'warehouse')])
     >>> shipment.warehouse = warehouse
-    >>> shipment.payment_term = payment_term
     >>> shipment.save()
 
 When the shipment work is checked an invoice is created::
@@ -183,15 +182,10 @@ When the shipment work is checked an invoice is created::
     >>> shipment.click('check')
     >>> shipment.state
     u'checked'
-    >>> invoice, = shipment.invoices
-    >>> invoice.state
-    u'draft'
-    >>> invoice.total_amount
-    Decimal('20.00')
-
-When the shipment work is check to done, cancel invoices::
-
-    >>> shipment.click('done')
-    >>> invoice, = shipment.invoices
-    >>> invoice.state
-    u'cancel'
+    >>> sale1, sale2 = shipment.sales
+    >>> sale1.invoice_method == 'order'
+    True
+    >>> sale2.invoice_method == 'manual'
+    True
+    >>> sale1.payment_term == payment_term
+    True
