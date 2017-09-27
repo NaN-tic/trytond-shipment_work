@@ -136,7 +136,7 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             },
         depends=['state'])
     payment_term = fields.Many2One('account.invoice.payment_term',
-        'Payment Term', required=True,
+        'Payment Term',
         states={
             'readonly': Eval('state').in_(['checked', 'cancel']),
             },
@@ -235,7 +235,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 'missing_journal': 'A default journal has not been defined.',
                 'missing_address': (
                     'Party "%s" (%s) must have a default address.'),
-                'missing_product_account': 'Product "%s" must have an account.'
+                'missing_product_account': 'Product "%s" must have an account.',
+                'not_found_payment_term': 'Not found default Payment Term.',
                 })
         cls._transitions |= set((
                 ('draft', 'pending'),
@@ -621,6 +622,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     def create_moves(self):
         for shipment_product in self.products:
+            if not shipment_product.product:
+                continue
             move = shipment_product.get_move()
             if move:
                 self.stock_moves += (move,)
@@ -633,8 +636,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         sale.currency = self.work.company.currency
         sale.warehouse = self.warehouse
         sale.payment_term = self.payment_term
+        sale.payment_term = (self.payment_term or
+            self.party.customer_payment_term)
         if not sale.payment_term:
-            sale.payment_term = self.party.customer_payment_term
+            self.raise_user_error('not_found_payment_term')
         sale.party = self.party
         sale.sale_date = self.done_date
         sale.invoice_address = self.party.address_get(type='invoice')
