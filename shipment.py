@@ -307,18 +307,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                         where=sql_table.id == id_))
             table.drop_column('planned_hours')
 
-        # Migration from 4.0: add number
-        # TODO: Remove after upgrade 4.0 because can't install the module
-        if column_not_exists:
-            cursor.execute(*sql_table.update(
-                    [sql_table.number],
-                    [timesheet_work.name],
-                    from_=[timesheet_work, shipment_work_timesheet_work],
-                    where=(
-                        (sql_table.id == shipment_work_timesheet_work.shipment)
-                        & (shipment_work_timesheet_work.work
-                            == timesheet_work.id))))
-
     @staticmethod
     def default_state():
         return 'draft'
