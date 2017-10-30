@@ -138,10 +138,14 @@ Configure shipment work::
     >>> stock_config.shipment_work_journal = cash_journal
     >>> stock_config.save()
 
+Get locations::
+
+    >>> Location = Model.get('stock.location')
+    >>> warehouse, = Location.find([('type', '=', 'warehouse')])
+
 Create a shipment work with three lines::
 
     >>> Shipment = Model.get('shipment.work')
-    >>> Location = Model.get('stock.location')
     >>> shipment = Shipment()
     >>> shipment.work_description = 'Work'
     >>> shipment.party = customer
@@ -173,7 +177,9 @@ Create a shipment work with three lines::
     >>> line = shipment.products.new()
     >>> line.product = product
     >>> line.quantity = 2.0
-    >>> warehouse, = Location.find([('type', '=', 'warehouse')])
+    >>> line = shipment.products.new()
+    >>> line.product = product
+    >>> line.quantity = -2.0
     >>> shipment.warehouse = warehouse
     >>> shipment.save()
 
@@ -188,4 +194,6 @@ When the shipment work is checked an invoice is created::
     >>> sale2.invoice_method == 'manual'
     True
     >>> sale1.payment_term == payment_term
+    True
+    >>> len(shipment.stock_moves) == 3
     True
