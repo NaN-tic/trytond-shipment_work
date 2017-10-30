@@ -533,7 +533,7 @@ msgstr "Cancel·lat"
 
 msgctxt "view:shipment.work:"
 msgid "Check"
-msgstr "Revisat"
+msgstr "Revisar"
 
 msgctxt "view:shipment.work:"
 msgid "Costs"
