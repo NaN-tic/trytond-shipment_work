@@ -192,15 +192,18 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             'readonly': Eval('state').in_(['checked', 'cancel']),
         }, required=True)
     customer_location = fields.Function(fields.Many2One('stock.location',
-            'Customer Location'),
-        'on_change_with_customer_location')
+            'Customer Location'), 'on_change_with_customer_location')
+    storage_location = fields.Function(fields.Many2One('stock.location',
+            'Storage Location'), 'on_change_with_storage_location')
     stock_moves = fields.One2Many('stock.move', 'shipment', 'Stock Moves',
         domain=[
-            ('from_location', 'child_of', [Eval('warehouse', -1)], 'parent'),
-            ('to_location', '=', Eval('customer_location')),
+            ('from_location', 'in', [
+                Eval('customer_location'), Eval('storage_location')]),
+            ('to_location', 'in', [
+                Eval('customer_location'), Eval('storage_location')]),
             ('company', '=', Eval('company')),
             ], readonly=True,
-        depends=['warehouse', 'customer_location', 'company'])
+        depends=['warehouse', 'customer_location', 'storage_location', 'company'])
     origin = fields.Reference('Origin', selection='get_origin', states={
             'readonly': Eval('state') != 'draft',
             }, depends=['state'])
@@ -385,11 +388,15 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             [tuple(('sale_lines.sale',)) + tuple(clause[1:])],
             ]
 
-
     @fields.depends('party')
     def on_change_with_customer_location(self, name=None):
         if self.party:
             return self.party.customer_location.id
+
+    @fields.depends('warehouse')
+    def on_change_with_storage_location(self, name=None):
+        if self.warehouse:
+            return self.warehouse.storage_location.id
 
     @fields.depends('currency')
     def on_change_with_currency_digits(self, name=None):
@@ -796,17 +803,23 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
         return sale_line
 
     def get_move(self):
-        pool = Pool()
-        Move = pool.get('stock.move')
+        Move = Pool().get('stock.move')
+
+        if self.quantity >= 0:
+            from_location = self.shipment.storage_location
+            to_location = self.shipment.customer_location
+        else:
+            from_location = self.shipment.customer_location
+            to_location = self.shipment.storage_location
 
         move = Move()
         move.product = self.product
         move.uom = self.unit
-        move.quantity = self.quantity
+        move.quantity = abs(self.quantity)
         move.unit_price = self.product.list_price
         move.currency = self.shipment.company.currency
-        move.from_location = self.shipment.warehouse.storage_location
-        move.to_location = self.shipment.customer_location
+        move.from_location = from_location
+        move.to_location = to_location
         move.effective_date = self.shipment.done_date
         move.company = self.shipment.company
         move.origin = self
