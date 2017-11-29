@@ -624,6 +624,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if not sale.payment_term:
             self.raise_user_error('not_found_payment_term')
         sale.party = self.party
+        if hasattr(Sale, 'price_list') and self.party.sale_price_list:
+            sale.price_list = self.party.sale_price_list
         sale.sale_date = self.done_date
         sale.invoice_address = self.party.address_get(type='invoice')
         sale.shipment_address = self.party.address_get(type='delivery')
@@ -772,11 +774,11 @@ class ShipmentWorkProduct(ModelSQL, ModelView):
         return 2
 
     def get_sale_line(self, sale, invoice_method):
-        pool = Pool()
-        SaleLine = pool.get('sale.line')
+        SaleLine = Pool().get('sale.line')
 
         if invoice_method != self.invoice_method:
             return
+
         sale_line = SaleLine()
         sale_line.sale = sale
         sale_line.quantity = self.quantity
