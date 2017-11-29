@@ -27,6 +27,8 @@ Install shipment work::
     >>> Module = Model.get('ir.module')
     >>> module, = Module.find([('name', '=', 'shipment_work')])
     >>> module.click('install')
+    >>> module, = Module.find([('name', '=', 'sale_price_list')])
+    >>> module.click('install')
     >>> Wizard('ir.module.install_upgrade').execute('upgrade')
 
 Create company::
@@ -143,6 +145,23 @@ Get locations::
     >>> Location = Model.get('stock.location')
     >>> warehouse, = Location.find([('type', '=', 'warehouse')])
 
+Create a price List and assign it to customer::
+
+    >>> PriceList = Model.get('product.price_list')
+    >>> price_list = PriceList(name='Retail')
+    >>> price_list_line = price_list.lines.new()
+    >>> price_list_line.quantity = 10.0
+    >>> price_list_line.product = product
+    >>> price_list_line.formula = 'unit_price * 0.7'
+    >>> price_list_line = price_list.lines.new()
+    >>> price_list_line.product = product
+    >>> price_list_line.formula = 'unit_price * 0.8'
+    >>> price_list_line = price_list.lines.new()
+    >>> price_list_line.formula = 'unit_price * 0.5'
+    >>> price_list.save()
+    >>> customer.sale_price_list = price_list
+    >>> customer.save()
+
 Create a shipment work with three lines::
 
     >>> Shipment = Model.get('shipment.work')
@@ -183,7 +202,7 @@ Create a shipment work with three lines::
     >>> shipment.warehouse = warehouse
     >>> shipment.save()
 
-When the shipment work is checked an invoice is created::
+When the shipment work is checked an sale is created::
 
     >>> shipment.click('check')
     >>> shipment.state
@@ -196,4 +215,8 @@ When the shipment work is checked an invoice is created::
     >>> sale1.payment_term == payment_term
     True
     >>> len(shipment.stock_moves) == 3
+    True
+    >>> sale1.untaxed_amount == Decimal('0.00')
+    True
+    >>> sale2.untaxed_amount == Decimal('8.00')
     True
