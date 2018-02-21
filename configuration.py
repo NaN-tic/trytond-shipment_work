@@ -1,9 +1,9 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from trytond.model import ModelSQL, Model, fields
+from trytond.model import ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
-from trytond.transaction import Transaction
+from trytond.modules.company.model import CompanyValueMixin
 
 __all__ = ['Configuration', 'ConfigurationCompany']
 
@@ -11,72 +11,41 @@ __all__ = ['Configuration', 'ConfigurationCompany']
 class Configuration:
     __name__ = 'stock.configuration'
     __metaclass__ = PoolMeta
-    shipment_work_sequence = fields.Function(fields.Many2One('ir.sequence',
-            'Shipment Work Sequence',
+    shipment_work_sequence = fields.MultiValue(fields.Many2One(
+            'ir.sequence', 'Shipment Work Sequence',
             domain=[
                 ('company', 'in',
                     [Eval('context', {}).get('company', -1), None]),
                 ('code', '=', 'shipment.work'),
-                ], required=True),
-        'get_company_config', 'set_company_config')
-    shipment_work_hours_product = fields.Function(fields.Many2One(
+                ], required=True))
+    shipment_work_hours_product = fields.MultiValue(fields.Many2One(
             'product.product', 'Shipment Work Hours Product',
             domain=[
                 ('type', '=', 'service'),
                 ('salable', '=', True),
                 ],
             required=True,
-            help='The product used to invoice the service hours of a shipment'),
-        'get_company_config', 'set_company_config')
-    shipment_work_journal = fields.Function(fields.Many2One('account.journal',
-            'Shipment Work Journal', required=True),
-        'get_company_config', 'set_company_config')
-            
-    @classmethod
-    def get_company_config(self, configs, names):
-        pool = Pool()
-        CompanyConfig = pool.get('stock.configuration.company')
-
-        company_id = Transaction().context.get('company')
-        company_configs = CompanyConfig.search([
-                ('company', '=', company_id),
-                ])
-
-        res = {}
-        for fname in names:
-            res[fname] = {
-                configs[0].id: None,
-                }
-            if company_configs:
-                val = getattr(company_configs[0], fname)
-                if isinstance(val, Model):
-                    val = val.id
-                res[fname][configs[0].id] = val
-        return res
+            help='The product used to invoice '
+            'the service hours of a shipment'))
+    shipment_work_journal = fields.MultiValue(
+        fields.Many2One(
+            'account.journal', 'Shipment Work Journal', required=True))
 
     @classmethod
-    def set_company_config(self, configs, name, value):
+    def multivalue_model(cls, field):
         pool = Pool()
-        CompanyConfig = pool.get('stock.configuration.company')
-
-        company_id = Transaction().context.get('company')
-        company_configs = CompanyConfig.search([
-                ('company', '=', company_id),
-                ])
-        if company_configs:
-            company_config = company_configs[0]
-        else:
-            company_config = CompanyConfig(company=company_id)
-        setattr(company_config, name, value)
-        company_config.save()
+        if field in {
+                'shipment_work_sequence',
+                'shipment_work_hours_product',
+                'shipment_work_journal'}:
+            return pool.get('stock.configuration.company')
+        return super(Configuration, cls).multivalue_model(field)
 
 
-class ConfigurationCompany(ModelSQL):
+class ConfigurationCompany(ModelSQL, CompanyValueMixin):
     'Stock Configuration per Company'
     __name__ = 'stock.configuration.company'
 
-    company = fields.Many2One('company.company', 'Company', required=True,
-        ondelete='CASCADE', select=True)
     shipment_work_sequence = fields.Many2One('ir.sequence',
         'Shipment Work Sequence',
         domain=[

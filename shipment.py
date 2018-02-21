@@ -203,7 +203,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 Eval('customer_location'), Eval('storage_location')]),
             ('company', '=', Eval('company')),
             ], readonly=True,
-        depends=['warehouse', 'customer_location', 'storage_location', 'company'])
+        depends=['warehouse', 'customer_location', 'storage_location',
+            'company'])
     origin = fields.Reference('Origin', selection='get_origin', states={
             'readonly': Eval('state') != 'draft',
             }, depends=['state'])
@@ -236,7 +237,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
                 'missing_journal': 'A default journal has not been defined.',
                 'missing_address': (
                     'Party "%s" (%s) must have a default address.'),
-                'missing_product_account': 'Product "%s" must have an account.',
+                'missing_product_account': (
+                    'Product "%s" must have an account.'),
                 'not_found_payment_term': 'Not found default Payment Term.',
                 })
         cls._transitions |= set((
@@ -281,17 +283,10 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def __register__(cls, module_name):
-        pool = Pool()
-        TimesheetWork = pool.get('timesheet.work')
-        ShipmentWorkTimesheetWork = pool.get('shipment.work-timesheet.work')
         TableHandler = backend.get('TableHandler')
 
         sql_table = cls.__table__()
-        timesheet_work = TimesheetWork.__table__()
-        shipment_work_timesheet_work = ShipmentWorkTimesheetWork.__table__()
         table = TableHandler(cls, module_name)
-
-        column_not_exists = not table.column_exist('number')
 
         super(ShipmentWork, cls).__register__(module_name)
 
@@ -389,9 +384,9 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
     @fields.depends('currency')
     def on_change_with_currency_digits(self, name=None):
         Company = Pool().get('company.company')
-        company = Company(Transaction().context.get('company'))
-
-        if company.currency:
+        company_id = Transaction().context.get('company')
+        if company_id:
+            company = Company(Transaction().context.get('company'))
             return company.currency.digits
         return 2
 
@@ -657,7 +652,6 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
         if sales_to_create:
             Sale.create(sales_to_create)
 
-
     @classmethod
     @ModelView.button
     @Workflow.transition('cancel')
@@ -702,7 +696,8 @@ class ShipmentWork(Workflow, ModelSQL, ModelView):
             self.raise_user_error('no_shipment_work_hours_product')
         sale_line = SaleLine()
         sale_line.shipment_work = self
-        sale_line.quantity = Decimal(str(hours_to_invoice.total_seconds()/3600)
+        sale_line.quantity = Decimal(
+            str(hours_to_invoice.total_seconds() / 3600)
             ).quantize(Decimal(str(10.0 ** -2)))
 
         sale_line.product = config.shipment_work_hours_product
